@@ -57,7 +57,7 @@ public class OwlUnreasoningClass {
 
 			for (OWLEquivalentClassesAxiom axiom : LauncherClass.ontology.getEquivalentClassesAxioms(oap)) {
 				tempSet = axiom.getClassesInSignature();
-				//tempSet.remove(oap);
+
 				listOfEquivalentClasses.addAll(tempSet);
 			}
 
@@ -88,7 +88,7 @@ public class OwlUnreasoningClass {
 		int count = 1;
 		for (Object key : subClassMap.keySet()) {
 			Object value = subClassMap.get(key);
-			System.out.println(count++ + ".. The class Label: " + key + "--" + value);
+			//System.out.println(count++ + ".. The class Label: " + key + "--" + value);
 		}
 		/*for (Object key : EquivalentClassMap.keySet()) {
 			Object value = EquivalentClassMap.get(key);

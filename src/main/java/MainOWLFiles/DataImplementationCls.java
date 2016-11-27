@@ -8,59 +8,72 @@ import java.util.Set;
 
 public class DataImplementationCls {
 
-    public Set<OWLClass> predcessorElements;
-    public Set<OWLClass> successorElements;
-    public OWLClass element;
-    public Set<OWLClass> isEquivalentList;
+    public OWLClass dataElement;
+    public Set<OWLClass> predcessorDataSet;
+    public Set<OWLClass> successorDataSet;
+    public Set<OWLClass> equivalentDataSet;
 
-
-    public Set<OWLClass> getIsEquivalentList() {
-        return isEquivalentList;
+    public DataImplementationCls(OWLClass dataElement) {
+        this.dataElement = dataElement;
+        predcessorDataSet = new HashSet<OWLClass>();
+        successorDataSet = new HashSet<OWLClass>();
+        this.equivalentDataSet = new HashSet();
     }
 
-    public void setIsEquivalentList(Set<OWLClass> isEquivalentList) {
-        this.isEquivalentList = isEquivalentList;
+    public Set<OWLClass> getEquivalentDataSet() {
+        return equivalentDataSet;
     }
 
-    public DataImplementationCls(OWLClass element) {
-        this.element = element;
-        predcessorElements = new HashSet<OWLClass>();
-        successorElements = new HashSet<OWLClass>();
-        this.isEquivalentList = new HashSet();
-
+    public void setEquivalentDataSet(Set<OWLClass> equivalentDataSet) {
+        this.equivalentDataSet = equivalentDataSet;
     }
 
-    public Set<OWLClass> getPredcessorElements() {
-        return predcessorElements;
+    public Set<OWLClass> getPredcessorDataSet() {
+        return predcessorDataSet;
     }
 
-    public void setPredcessorElements(Set<OWLClass> predcessorElements) {
-        this.predcessorElements = predcessorElements;
+    public void setPredcessorDataSet(Set<OWLClass> predcessorDataSet) {
+        this.predcessorDataSet = predcessorDataSet;
     }
 
-    public Set<OWLClass> getSuccessorElements() {
-        return successorElements;
+    public Set<OWLClass> getSuccessorDataSet() {
+        return successorDataSet;
     }
 
-    public void setSuccessorElements(Set<OWLClass> successorElements) {
-        this.successorElements = successorElements;
+    public void setSuccessorDataSet(Set<OWLClass> successorDataSet) {
+        this.successorDataSet = successorDataSet;
     }
 
-    public OWLClass getElement() {
-        return element;
+    public OWLClass getDataElement() {
+        return dataElement;
     }
 
-    public void setElement(OWLClass element) {
-        this.element = element;
+    public void setDataElement(OWLClass dataElement) {
+        this.dataElement = dataElement;
     }
-
     @Override
     public String toString() {
-        return "DataImplementationCls [predcessorElements=" + predcessorElements + ", "
-                + "successorElements=" + successorElements + ", "
-                + "element=" + element + ", "
-                + "isEquivalent=" + isEquivalentList + ""
+        return "DataImplementationCls [dataElement=" + dataElement + ", "
+                + "predcessorDataSet=" + predcessorDataSet + ", "
+                + "successorDataSet=" + successorDataSet + ", "
+                + "isEquivalent=" + equivalentDataSet + ""
                 + "]";
+
     }
+
+
+    /*public boolean equals(DataImplementationCls other) {
+        // compare the features of the tow instances and return true or false
+        if (!this.getPredcessorDataSet().equals(other.getPredcessorDataSet())) {
+            return false;
+        } else if (!this.getSuccessorDataSet().equals(other.getSuccessorDataSet())) {
+            return false;
+        } else if (!dataElement.equals(other)) {
+            return false;
+        } else if (!this.getEquivalentDataSet().equals(other.getEquivalentDataSet())) {
+            return false;
+        }
+        return true; // all the features are equal
+    }*/
 
 }

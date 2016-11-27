@@ -6,8 +6,6 @@ package MainOWLFiles;
 import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
-import org.semanticweb.owlapi.reasoner.NodeSet;
-import org.w3c.dom.NodeList;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -15,14 +13,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class OwlSequentialParsing {
 
     static Reasoner OWLHerm;
-    static HashMap<OWLClass, Set<OWLClass>> subClassSet = new HashMap<OWLClass, Set<OWLClass>>();
-    static HashMap<OWLClass, Set<OWLClass>> superClassSet = new HashMap<OWLClass, Set<OWLClass>>();
+    static HashMap<OWLClass, Set<OWLClass>> subClassHashMap = new HashMap<OWLClass, Set<OWLClass>>();
+    static HashMap<OWLClass, Set<OWLClass>> superClassMap = new HashMap<OWLClass, Set<OWLClass>>();
     static HashMap<OWLClass, Set<OWLClass>> equiClassMap = new HashMap<OWLClass, Set<OWLClass>>();
-    
-    static List<OWLClass> randomClassList = new ArrayList<OWLClass>();
-    static List<OWLClass> randomClassListDFS = new ArrayList<OWLClass>();
-    static List<OWLClass> randomClassListBFS = new ArrayList<>();
-    
+
+    static List<OWLClass>  randomClassList =  new ArrayList<>();
+    static Set<OWLClass> randomClassListDFS = new LinkedHashSet<>();
+    static Set<OWLClass>  randomClassListBFS =  new LinkedHashSet<>();
+    static List<OWLClass>  randomClassListTemp =  new ArrayList<>();
+
+
 
     static int countNumberOfTest = 0;
     static OWLClass topNode;
@@ -35,7 +35,6 @@ public class OwlSequentialParsing {
         this.OWLHerm = OWLHermit;
     }//Constructor
 
-
     //this method is giving 100% correct result. tested
     public void ontologyClassList() {
         int count =1;
@@ -45,7 +44,7 @@ public class OwlSequentialParsing {
             Set<OWLClass> superClasses = this.OWLHerm.getSuperClasses((OWLClass) oap, true).getFlattened();
 
             //System.out.println(count++ + "  The super classes for ---" + oap + "  is====" + superClasses);
-            superClassSet.put(oap, superClasses);
+            superClassMap.put(oap, superClasses);
 
             // This is list of equivalent classes of given concept given by Hermit reasoner
             Node<OWLClass> equiClass = this.OWLHerm.getEquivalentClasses(oap);
@@ -59,8 +58,8 @@ public class OwlSequentialParsing {
 
             // This is giving the subclass of given concept fetch by Hermit reasoner
             Set<OWLClass> subClasses = this.OWLHerm.getSubClasses((OWLClass) oap, true).getFlattened();
-            //System.out.println(count++ + "  The sub classes for ---" + oap + "is====" + subClasses);
-            subClassSet.put(oap, subClasses);
+            System.out.println(count++ + "  The sub classes for ---" + oap + "is====" + subClasses);
+            subClassHashMap.put(oap, subClasses);
 
             randomClassList.add(oap);
 
@@ -90,10 +89,17 @@ public class OwlSequentialParsing {
     public void topDownParsing() throws OWLOntologyCreationException {
 
         for (OWLClass cls : OWLHerm.getTopClassNode()) {
-            recursiveDFS(cls);
+            if (cls.isOWLThing())
+            {
+                recursiveDFS(cls);
+            }
         }
+
         for (OWLClass cls : OWLHerm.getTopClassNode()) {
-            recursiveBFS(cls);
+            if (cls.isOWLThing())
+            {
+                recursiveBFS(cls);
+            }
         }
     }
 
@@ -151,8 +157,6 @@ public class OwlSequentialParsing {
         boolean nodePSFlag;
         boolean isEquivalent;
         for (OWLClass currentInsertNode : randomClassList) {
-
-            {
                 // System.out.println(Thread.currentThread().getName());
                 // current node is the child of any node // top down approach
                 currentInsertNodeObj = new DataImplementationCls(currentInsertNode);
@@ -160,42 +164,41 @@ public class OwlSequentialParsing {
 
                 for (DataImplementationCls processedNode : clsList) {
                 	countNumberOfTest++;
-                    if (subClassSet.get(processedNode.getElement()) != null
-                            && subClassSet.get(processedNode.getElement()).contains(currentInsertNodeObj.getElement())) {
-                        processedNode.setIsEquivalentList(equiClassMap.get(processedNode.getElement()));
-                        currentInsertNodeObj.setIsEquivalentList(equiClassMap.get(currentInsertNodeObj.getElement()));
-                        currentInsertNodeObj.getPredcessorElements().add(processedNode.getElement());
-                        processedNode.getSuccessorElements().add(currentInsertNodeObj.getElement());
-                        clsList.get(0).getSuccessorElements().remove(currentInsertNodeObj.getElement());
+                    if (subClassHashMap.get(processedNode.getDataElement()) != null
+                            && subClassHashMap.get(processedNode.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
+                        processedNode.setEquivalentDataSet(equiClassMap.get(processedNode.getDataElement()));
+                        currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
+                        currentInsertNodeObj.getPredcessorDataSet().add(processedNode.getDataElement());
+                        processedNode.getSuccessorDataSet().add(currentInsertNodeObj.getDataElement());
+                        clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
                         nodePSFlag = true;
                     }
                 }
-                // if current element is not inferred by any processed
-                // element
+                // if current dataElement is not inferred by any processed
+                // dataElement
                 if (nodePSFlag == false) {
-                    // adding Successor of the root element root
-                    clsList.get(0).getSuccessorElements().add(currentInsertNode);
-                    // adding father as root of current element
-                    currentInsertNodeObj.getPredcessorElements().add(clsList.get(0).getElement());
+                    // adding Successor of the root dataElement root
+                    clsList.get(0).getSuccessorDataSet().add(currentInsertNode);
+                    // adding father as root of current dataElement
+                    currentInsertNodeObj.getPredcessorDataSet().add(clsList.get(0).getDataElement());
                 }
                 clsList.add(currentInsertNodeObj);
-                if (currentInsertNodeObj.getElement() == topNode)
+                if (currentInsertNodeObj.getDataElement() == topNode)
                     rootElementIndex = clsList.indexOf(currentInsertNodeObj);
 
-            }
 
             // Bottom Down Traversal
             // wo kisi ka parent hai ke nai
            for (int i = clsList.size() - 1; i >= 0; i--) {
             	countNumberOfTest++;
-                if (superClassSet.get(clsList.get(i).getElement()) != null
-                        && superClassSet.get(clsList.get(i).getElement()).contains(currentInsertNodeObj.getElement())) {
-                    clsList.get(i).setIsEquivalentList(equiClassMap.get(clsList.get(i).getElement()));
-                    currentInsertNodeObj.setIsEquivalentList(equiClassMap.get(currentInsertNodeObj.getElement()));
-                    currentInsertNodeObj.getSuccessorElements().add(clsList.get(i).getElement());
-                    clsList.get(i).getPredcessorElements().remove(clsList.get(0).getElement());
-                    clsList.get(i).getPredcessorElements().add(currentInsertNodeObj.getElement());
-                    clsList.get(0).getSuccessorElements().remove(currentInsertNodeObj.getElement());
+                if (superClassMap.get(clsList.get(i).getDataElement()) != null
+                        && superClassMap.get(clsList.get(i).getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
+                    clsList.get(i).setEquivalentDataSet(equiClassMap.get(clsList.get(i).getDataElement()));
+                    currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
+                    currentInsertNodeObj.getSuccessorDataSet().add(clsList.get(i).getDataElement());
+                    clsList.get(i).getPredcessorDataSet().remove(clsList.get(0).getDataElement());
+                    clsList.get(i).getPredcessorDataSet().add(currentInsertNodeObj.getDataElement());
+                    clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
                     nodePSFlag = true;
                 }
             }
