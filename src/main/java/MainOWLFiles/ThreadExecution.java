@@ -5,9 +5,6 @@ import org.semanticweb.owlapi.model.OWLClass;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Created by shsharma on 8/1/2016.
- */
 public class ThreadExecution implements Runnable {
 
 
@@ -22,5 +19,7 @@ public class ThreadExecution implements Runnable {
         }
         public void run() {
             parser.graphPopulation(finalGraphList,randomClassList);
+            //parser.graphPopulation(finalGraphList,randomClassList);
+
         }
 }

@@ -13,9 +13,10 @@ import java.util.concurrent.ForkJoinPool;
 
 public class LauncherClass {
     // Pizza Ontology file use for processing
-    private static final String pizzalink = "http://protege.stanford.edu/ontologies/pizza/pizza.owl";
-    //private static final String pizzalink ="http://www.cs.ox.ac.uk/isg/ontologies/lib/ProPreO/2008-02-09/00772.owl";
+     private static final String pizzalink = "http://protege.stanford.edu/ontologies/pizza/pizza.owl";
     //private static final File pizzalink = new File("C:\\Users\\User\\Desktop\\owl files\\00721.owl.xml");
+    //private static final File pizzalink = new File("C:\\Users\\User\\Desktop\\owl files\\Sawada_1982.xml.owl.xml");
+
     static OWLOntology ontology;
     static OWLDataFactory df;
 
@@ -49,7 +50,7 @@ public class LauncherClass {
         finalGraphList = resetListAndAddRoot(finalGraphList);
         //adding top node to tree ends
         startTime = System.currentTimeMillis();
-        parser.graphPopulation(finalGraphList, DFSlist);
+        parser.graphPopulation(finalGraphList, BFSlist);
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
 
@@ -61,7 +62,7 @@ public class LauncherClass {
         }
 
         System.out.println("randomclassListBFS---"+OwlSequentialParsing.randomClassListBFS.size());
-        System.out.println("randomclassListDFS---"+OwlSequentialParsing.randomClassListDFS.size());
+        System.out.println("randomclassListDFS---"+OwlSequentialParsing.randomClassListDFS);
         System.out.println("randomclassList---"+OwlSequentialParsing.randomClassList.size());
         System.out.println("========================================SINGLE Threading Framework ==================== ");
         System.out.println("========================================Time consumption ==================================" + duration);
@@ -73,14 +74,16 @@ public class LauncherClass {
 
         //adding top node to tree starts
         finalGraphList = resetListAndAddRoot(finalGraphList);
+        System.out.println("..................1111");
         //adding top node to tree ends
         startTime = System.currentTimeMillis();
 
-        startThreadOnBasisOFParsingNumber(4, finalGraphList, parser, DFSlist);
+        startThreadOnBasisOFParsingNumber(5, finalGraphList, parser, DFSlist);
 
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
-
+        //startThreadOnBasisOFParsingNumber(5, finalGraphList, parser, DFSlist);
+        System.out.println("..................222222");
         if(OwlSequentialParsing.removeDuplicateCheck == false)
         {
             //removing duplicate dataElement starts
@@ -92,15 +95,21 @@ public class LauncherClass {
         System.out.println("========================================MULTIPLE Threading Framework ==================== ");
         System.out.println("========================================Time consumption ==================================" + duration);
         System.out.println(finalGraphList);
+        System.out.println("..................333333");
         resultComparator(finalGraphList);
 
         //==================MULTI THREAD EXECUTION END================
-        startTime = System.currentTimeMillis();
-        startForkOnBasisOFParsingNumber(3, finalGraphList, parser, DFSlist);
-        endTime = System.currentTimeMillis();
 
         //==================FORK AND JOIN EXECUTION START================
         //fork and join
+
+        //adding top node to tree starts
+        finalGraphList = resetListAndAddRoot(finalGraphList);
+
+        startTime = System.currentTimeMillis();
+        startForkOnBasisOFParsingNumber(7, finalGraphList, parser, BFSlist);
+        endTime = System.currentTimeMillis();
+
         if(OwlSequentialParsing.removeDuplicateCheck == false)
         {
             //removing duplicate dataElement starts\
@@ -118,7 +127,7 @@ public class LauncherClass {
         System.out.println(finalGraphList);
         resultComparator(finalGraphList);
 
-        //==================FORK AND JOIN EXECUTION START================
+        //==================FORK AND JOIN EXECUTION END================
 
         System.out.println("Test performed == " + parser.countNumberOfTest);
 
@@ -138,6 +147,7 @@ public class LauncherClass {
     public static CopyOnWriteArrayList<DataImplementationCls> removeDuplicateElement(CopyOnWriteArrayList<DataImplementationCls> finalGraphList) {
         //removing duplicate dataElement starts
         Set<OWLClass> sucess2 = finalGraphList.get(OwlSequentialParsing.rootElementIndex).getSuccessorDataSet();
+        //if (sucess2 != null) return finalGraphList;
         DataImplementationCls currentInsertNodeObj = finalGraphList.get(0);
         currentInsertNodeObj.setSuccessorDataSet(sucess2);
         if (sucess2 != null) {
@@ -185,6 +195,7 @@ public class LauncherClass {
 
         int size = listTobeWorkedOn.size();
         List<OWLClass> list;
+        //List<Thread> threads = new ArrayList<Thread>();
         Thread th;
         Runnable proExec;
         int numberOfThreads = size / threadsNumber;
@@ -192,18 +203,23 @@ public class LauncherClass {
         if (threadsNumber < size) {
             while (numberOfThreads < size) {
                 list = listTobeWorkedOn.subList(intialRange, numberOfThreads);
+                System.out.println("Sublist Size in thread............"+list.size());
+
                 proExec = new ThreadExecution(finalGraphList, parser, list);
+               // threads.add( new Thread(proExec, "Thread-range-" + numberOfThreads + "-" + intialRange));
                 th = new Thread(proExec, "Thread-range-" + numberOfThreads + "-" + intialRange);
                 th.start();
-                if (numberOfThreads + numberOfThreads < size) {
+                if (numberOfThreads + (size / threadsNumber) < size) {
                     intialRange = numberOfThreads;
-                    numberOfThreads += numberOfThreads;
+                    numberOfThreads += size / threadsNumber;
                 } else {
                     break;
                 }
             }
             if (numberOfThreads < size) {
-                list = listTobeWorkedOn.subList(numberOfThreads, size - 1);
+                list = listTobeWorkedOn.subList(numberOfThreads, size);
+                System.out.println("Sublist Size in thread............"+list.size());
+
                 proExec = new ThreadExecution(finalGraphList, parser, list);
                 th = new Thread(proExec, "Thread-range-" + numberOfThreads + "-" + intialRange);
                 th.start();
@@ -221,29 +237,32 @@ public class LauncherClass {
 
     }
 
-    public static void startForkOnBasisOFParsingNumber(int threadsNumber, CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List<OWLClass> listTobeWorkedOn) {
-        int size = listTobeWorkedOn.size();
-        int numberOfThreads = size / threadsNumber;
+    public static void startForkOnBasisOFParsingNumber(int numOfThreads, CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List<OWLClass> listTobeWorkedOn) {
+        int numOfNodes = listTobeWorkedOn.size();
+        int nodesPerThread = numOfNodes / numOfThreads;
         int intialRange = 0;
         MyRecursiveAction myRecursiveAction;
         List<MyRecursiveAction> myRecursiveActionList = new ArrayList<MyRecursiveAction>();
         ForkJoinPool forkJoinPool = new ForkJoinPool();
         List<OWLClass> list;
-        if (threadsNumber < size) {
-            while (numberOfThreads < size) {
-                list = listTobeWorkedOn.subList(intialRange, numberOfThreads);
+        if (numOfThreads < numOfNodes) {
+            while (nodesPerThread < numOfNodes) {
+                list = listTobeWorkedOn.subList(intialRange, nodesPerThread);
+                //System.out.println("Sublist Size in fork............"+list.size());
+
                 myRecursiveAction = new MyRecursiveAction(finalGraphList, parser, list);
                 forkJoinPool.execute(myRecursiveAction);
                 myRecursiveActionList.add(myRecursiveAction);
-                if (numberOfThreads + numberOfThreads < size) {
-                    intialRange = numberOfThreads;
-                    numberOfThreads += numberOfThreads;
+                if (nodesPerThread + (numOfNodes / numOfThreads) < numOfNodes) {
+                    intialRange = nodesPerThread;
+                    nodesPerThread += numOfNodes / numOfThreads;
                 } else {
                     break;
                 }
             }
-            if (numberOfThreads < size) {
-                list = listTobeWorkedOn.subList(numberOfThreads, size - 1);
+            if (nodesPerThread < numOfNodes) {
+                list = listTobeWorkedOn.subList(nodesPerThread, numOfNodes);
+                //System.out.println("Sublist Size in fork"+list.size());
                 myRecursiveAction = new MyRecursiveAction(finalGraphList, parser, list);
                 forkJoinPool.execute(myRecursiveAction);
                 myRecursiveActionList.add(myRecursiveAction);
@@ -280,7 +299,7 @@ public class LauncherClass {
                     //iterate all successors of DataImplementationClass and check value in HashMap SuccessorSet
                     if (!successorSet.contains(currentObj)) {
                         // TODO: print some message
-                        System.out.println(count++ +"successorSet FAILURE 1 !!!" + element);
+                        System.out.println( "Missing Successor nodes in Reasoner"+currentObj +"is not present in child list of.." +element );
                     }
                 }
                 //System.out.println(succCount++ +"Successors successful 1");
@@ -289,7 +308,7 @@ public class LauncherClass {
                     // visa versa
                     if (!succesorElement.isOWLNothing()&&!dataImplementationCls.getSuccessorDataSet().contains(succesorElement) ) {
                         // TODO: print some message
-                        System.out.println(succCount+++"successorSet FAILURE 2 !!!" + element + succesorElement);
+                        System.out.println("Missing Successor nodes in fina graph"+succesorElement +"is not present in child list of final graph.." + element);
                     }
 
                 }
@@ -306,7 +325,7 @@ public class LauncherClass {
                         //iterate all successors of DataImplementationClass and check value in HashMap SuccessorSet
                         if (!predecessorSet.contains(currentObj)) {
                             // TODO: print some message
-                            System.out.println("predecessorSet FAILURE 1 !!!" + currentObj);
+                            System.out.println("Missing predecessor nodes in reasoner"+currentObj +"is not present in child list of reasoner.." + element);
                         }
                         //System.out.println("successful 1"+currentObj);
                     }
@@ -316,7 +335,7 @@ public class LauncherClass {
                         // visa versa
                         if (!dataImplementationCls.getPredcessorDataSet().contains(predecessorElement) ) {
                             // TODO: print some message
-                            System.out.println("predecessorSet FAILURE 2 !!!" + predecessorElement);
+                            System.out.println("Missing predecessor nodes in final graph"+predecessorElement +"is not present in child list of final graph.." + element);
                         }
 
                     }
