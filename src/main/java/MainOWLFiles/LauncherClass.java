@@ -4,145 +4,170 @@ import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ForkJoinPool;
 
 public class LauncherClass {
     // Pizza Ontology file use for processing
-     private static final String pizzalink = "http://protege.stanford.edu/ontologies/pizza/pizza.owl";
+    private static final String pizzalink = "http://www.cs.ox.ac.uk/isg/ontologies/lib/OBO/NIF_GrossAnatomy/2012-10-12/00354.owl";
     //private static final File pizzalink = new File("C:\\Users\\User\\Desktop\\owl files\\00721.owl.xml");
     //private static final File pizzalink = new File("C:\\Users\\User\\Desktop\\owl files\\Sawada_1982.xml.owl.xml");
-
     static OWLOntology ontology;
     static OWLDataFactory df;
 
     public static void main(String[] args) throws OWLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-        long startTime, endTime;
-        float duration;
-        CopyOnWriteArrayList<DataImplementationCls> finalGraphList = new CopyOnWriteArrayList<DataImplementationCls>();
 
+        Scanner reader = new Scanner(System.in);  // Reading from System.in
+        System.out.println("Enter approach TO start with : single,multi,fork,all");
+        String approachName = reader.nextLine();
+        System.out.println("For Which Algo it should run:BFS,DFS");
+        String sortingName = reader.nextLine();
+        System.out.println("Enter No of thread to start with if you have chosen apart from single: ");
+        int noThread = reader.nextInt();
+
+        CopyOnWriteArrayList<DataImplementationCls> finalGraphList = new CopyOnWriteArrayList<DataImplementationCls>();
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         ontology = manager.loadOntologyFromOntologyDocument(IRI.create(pizzalink));////Load the ontology file
+
         //Reasoner to parse the owl parse
         Reasoner herm = new Reasoner(ontology);
-        // System.out.println(hermit.isConsistent());
-
         df = manager.getOWLDataFactory();
-        //OWLReasoner reasoner = new StructuralReasonerFactory().createReasoner(ontology);
 
         //calling Graph creation class
         OwlSequentialParsing parser = new OwlSequentialParsing(herm);
+        System.out.println("===================SUBCLASS FETCH START=====================");
         OwlUnreasoningClass.subClassFetch();
+        System.out.println("===================SUBCLASS FETCH END=====================");
+        System.gc();
+        System.out.println("===================Ontology FETCH START=====================");
         parser.ontologyClassList();
-        parser.topDownParsing();
-        List BFSlist = new ArrayList(OwlSequentialParsing.randomClassListBFS);
-        List DFSlist = new ArrayList(OwlSequentialParsing.randomClassListDFS);
+        System.out.println("===================Ontology FETCH END=====================");
+        System.out.println("===================topDownParsing FETCH START=====================");
+        parser.topDownParsing(sortingName.toUpperCase());
+        System.out.println("===================topDownParsing FETCH END=====================");
+        System.gc();
+        List sortedList = sortingName.toUpperCase().equals("BFS")?new ArrayList(OwlSequentialParsing.randomClassListBFS):new ArrayList(OwlSequentialParsing.randomClassListDFS);
+        /*List BFSlist = new ArrayList(OwlSequentialParsing.randomClassListBFS);
+        List DFSlist = new ArrayList(OwlSequentialParsing.randomClassListDFS);*/
+
         //System.out.println(OwlSequentialParsing.randomClassListBFS);
 
-
         //==================SINGLE THREAD EXECUTION START================
+        if(approachName!=null && (approachName.toLowerCase().equals("single") || approachName.toLowerCase().equals("all")))
+            startSingleThread(finalGraphList, parser, sortedList);
 
+        //==================SINGLE THREAD EXECUTION END================
+
+
+        //==================MULTI THREAD EXECUTION START================
+        if(approachName!=null && (approachName.toLowerCase().equals("multi") || approachName.toLowerCase().equals("all")))
+            startMultipleThread(finalGraphList,parser,sortedList,noThread);
+
+        //==================MULTI THREAD EXECUTION END================
+
+        //==================FORK AND JOIN EXECUTION START================
+        if(approachName!=null && (approachName.toLowerCase().equals("fork") || approachName.toLowerCase().equals("all")))
+            startForkThread(finalGraphList,parser,sortedList,noThread);
+        //==================FORK AND JOIN EXECUTION END================
+
+
+        System.out.println("Test performed == " + parser.countNumberOfTest);
+
+    }
+
+    public static void printThreadDetailsFork(ForkJoinPool forkJoinPool) {
+        System.out.printf("******************************************\n");
+        System.out.printf("Main: Parallelism: %d\n", forkJoinPool.getParallelism());
+        System.out.printf("Main: Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
+        System.out.printf("Main: Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
+        System.out.printf("Main: Steal Count: %d\n", forkJoinPool.getStealCount());
+        System.out.printf("******************************************\n");
+    }
+
+    public static void startSingleThread(CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List list) {
+
+        long startTime, endTime;
+        float duration;
         //adding top node to tree starts
         finalGraphList = resetListAndAddRoot(finalGraphList);
         //adding top node to tree ends
         startTime = System.currentTimeMillis();
-        parser.graphPopulation(finalGraphList, BFSlist);
+        parser.graphPopulation(finalGraphList, list);
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
 
         if (OwlSequentialParsing.removeDuplicateCheck == false) {
             //removing duplicate dataElement starts
-            
+
             finalGraphList = removeDuplicateElement(finalGraphList);
             //removing duplicate dataElement ends
         }
-
-        System.out.println("randomclassListBFS---"+OwlSequentialParsing.randomClassListBFS.size());
-        System.out.println("randomclassListDFS---"+OwlSequentialParsing.randomClassListDFS);
-        System.out.println("randomclassList---"+OwlSequentialParsing.randomClassList.size());
-        System.out.println("========================================SINGLE Threading Framework ==================== ");
+        //System.out.println("randomclassListBFS---"+OwlSequentialParsing.randomClassListBFS.size());
+        //System.out.println("randomclassListDFS---"+OwlSequentialParsing.randomClassListDFS);
+        //System.out.println("randomclassList---"+OwlSequentialParsing.randomClassList.size());
+        System.out.println("\n\n========================================SINGLE Threading Framework STARTS==================== ");
         System.out.println("========================================Time consumption ==================================" + duration);
         System.out.println(finalGraphList);
         resultComparator(finalGraphList);
+        System.out.println("========================================SINGLE Threading Framework ENDS==================== ");
         //==================SINGLE THREAD EXECUTION END================
 
-        //==================MULTI THREAD EXECUTION START================
+    }
 
+    public static void startMultipleThread(CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List list,int noThread) {
+        long startTime, endTime;
+        float duration;
         //adding top node to tree starts
         finalGraphList = resetListAndAddRoot(finalGraphList);
-        System.out.println("..................1111");
         //adding top node to tree ends
         startTime = System.currentTimeMillis();
 
-        startThreadOnBasisOFParsingNumber(5, finalGraphList, parser, DFSlist);
+        startThreadOnBasisOFParsingNumber(noThread, finalGraphList, parser, list);
 
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
-        //startThreadOnBasisOFParsingNumber(5, finalGraphList, parser, DFSlist);
-        System.out.println("..................222222");
-        if(OwlSequentialParsing.removeDuplicateCheck == false)
-        {
+        if (OwlSequentialParsing.removeDuplicateCheck == false) {
             //removing duplicate dataElement starts
             finalGraphList = removeDuplicateElement(finalGraphList);
             //removing duplicate dataElement ends
         }
 
         //thread approach starts
-        System.out.println("========================================MULTIPLE Threading Framework ==================== ");
+        System.out.println("\n\n========================================MULTIPLE Threading Framework STARTS==================== ");
         System.out.println("========================================Time consumption ==================================" + duration);
         System.out.println(finalGraphList);
-        System.out.println("..................333333");
         resultComparator(finalGraphList);
+        System.out.println("========================================MULTIPLE Threading Framework ENDS==================== ");
+    }
 
-        //==================MULTI THREAD EXECUTION END================
-
-        //==================FORK AND JOIN EXECUTION START================
+    public static void startForkThread(CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List list,int noThread) {
+        long startTime, endTime;
+        float duration;
         //fork and join
-
         //adding top node to tree starts
         finalGraphList = resetListAndAddRoot(finalGraphList);
 
         startTime = System.currentTimeMillis();
-        startForkOnBasisOFParsingNumber(7, finalGraphList, parser, BFSlist);
+        startForkOnBasisOFParsingNumber(noThread, finalGraphList, parser, list);
         endTime = System.currentTimeMillis();
 
-        if(OwlSequentialParsing.removeDuplicateCheck == false)
-        {
+        if (OwlSequentialParsing.removeDuplicateCheck == false) {
             //removing duplicate dataElement starts\
             finalGraphList = removeDuplicateElement(finalGraphList);
             //removing duplicate dataElement ends
         }
         //finalGraphList = resetListAndAddRoot(finalGraphList);
-
-
-
         duration = (endTime - startTime);
-
-        System.out.println("========================================FORK Threading Framework ==================== ");
+        System.out.println("\n\n========================================FORK Threading Framework STARTS==================== ");
         System.out.println("========================================Time consumption ==================================" + duration);
         System.out.println(finalGraphList);
         resultComparator(finalGraphList);
-
-        //==================FORK AND JOIN EXECUTION END================
-
-        System.out.println("Test performed == " + parser.countNumberOfTest);
-
+        System.out.println("========================================FORK Threading Framework ENDS==================== ");
     }
-
-    /*public static void printThreadDetailsFork(ForkJoinPool forkJoinPool)
-    {
-            System.out.printf("******************************************\n");
-            System.out.printf("Main: Parallelism: %d\n", forkJoinPool.getParallelism());
-            System.out.printf("Main: Active Threads: %d\n", forkJoinPool.getActiveThreadCount());
-            System.out.printf("Main: Task Count: %d\n", forkJoinPool.getQueuedTaskCount());
-            System.out.printf("Main: Steal Count: %d\n", forkJoinPool.getStealCount());
-            System.out.printf("******************************************\n");
-    }*/
-
 
     public static CopyOnWriteArrayList<DataImplementationCls> removeDuplicateElement(CopyOnWriteArrayList<DataImplementationCls> finalGraphList) {
         //removing duplicate dataElement starts
@@ -195,7 +220,7 @@ public class LauncherClass {
 
         int size = listTobeWorkedOn.size();
         List<OWLClass> list;
-        //List<Thread> threads = new ArrayList<Thread>();
+        List<Thread> threads = new ArrayList<Thread>();
         Thread th;
         Runnable proExec;
         int numberOfThreads = size / threadsNumber;
@@ -203,12 +228,11 @@ public class LauncherClass {
         if (threadsNumber < size) {
             while (numberOfThreads < size) {
                 list = listTobeWorkedOn.subList(intialRange, numberOfThreads);
-                System.out.println("Sublist Size in thread............"+list.size());
-
                 proExec = new ThreadExecution(finalGraphList, parser, list);
                // threads.add( new Thread(proExec, "Thread-range-" + numberOfThreads + "-" + intialRange));
                 th = new Thread(proExec, "Thread-range-" + numberOfThreads + "-" + intialRange);
                 th.start();
+                threads.add(th);
                 if (numberOfThreads + (size / threadsNumber) < size) {
                     intialRange = numberOfThreads;
                     numberOfThreads += size / threadsNumber;
@@ -218,23 +242,32 @@ public class LauncherClass {
             }
             if (numberOfThreads < size) {
                 list = listTobeWorkedOn.subList(numberOfThreads, size);
-                System.out.println("Sublist Size in thread............"+list.size());
-
                 proExec = new ThreadExecution(finalGraphList, parser, list);
                 th = new Thread(proExec, "Thread-range-" + numberOfThreads + "-" + intialRange);
                 th.start();
+                threads.add(th);
             }
 
         }
         long startTime = System.currentTimeMillis();
+        boolean flag= true;
+        List<Thread> deadThreadIndex = new ArrayList<>();
         //thread approach starts
-        while (finalGraphList.size() != listTobeWorkedOn.size()) {
+        while (flag) {//finalGraphList.size() != listTobeWorkedOn.size()
+            for (int i=0;i<threads.size();i++)
+            {
+                if(threads.get(i).isAlive()==false)
+                {
+                    deadThreadIndex.add(threads.get(i));
+                }
+            }
+
+            for (int i=0;i<deadThreadIndex.size();i++)
+            {
+                    threads.remove(deadThreadIndex.get(i));
+            }
+            if(threads.size()==0)flag=false;
         }
-        long endTime = System.currentTimeMillis();
-        long duration = (endTime - startTime);
-
-        System.out.println("========================================Time consumption in wating for multithreading==================================" + duration);
-
     }
 
     public static void startForkOnBasisOFParsingNumber(int numOfThreads, CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List<OWLClass> listTobeWorkedOn) {

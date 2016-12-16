@@ -37,7 +37,6 @@ public class OwlSequentialParsing {
 
     //this method is giving 100% correct result. tested
     public void ontologyClassList() {
-        int count =1;
         for (OWLClass oap : LauncherClass.ontology.getClassesInSignature()) {
 
             // This is list of superclass of given concept given by Hermit reasoner
@@ -86,19 +85,23 @@ public class OwlSequentialParsing {
     }
 
     // Method to simply parse the top down class hierarchy from reasoner file
-    public void topDownParsing() throws OWLOntologyCreationException {
+    public void topDownParsing(String Search) throws OWLOntologyCreationException {
 
-        for (OWLClass cls : OWLHerm.getTopClassNode()) {
-            if (cls.isOWLThing())
-            {
-                recursiveDFS(cls);
+        if(Search.equals("DFS") || Search.equals("ALL"))
+        {
+            for (OWLClass cls : OWLHerm.getTopClassNode()) {
+                if (cls.isOWLThing())
+                {
+                    recursiveDFS(cls);
+                }
             }
         }
-
-        for (OWLClass cls : OWLHerm.getTopClassNode()) {
-            if (cls.isOWLThing())
-            {
-                recursiveBFS(cls);
+        if(Search.equals("BFS") || Search.equals("ALL")){
+            for (OWLClass cls : OWLHerm.getTopClassNode()) {
+                if (cls.isOWLThing())
+                {
+                    recursiveBFS(cls);
+                }
             }
         }
     }
@@ -153,24 +156,17 @@ public class OwlSequentialParsing {
 
     // This method is used to implement the algorithm to construct final graph
     public void graphPopulation(CopyOnWriteArrayList<DataImplementationCls> clsList, List<OWLClass> randomClassList) {
-         DataImplementationCls currentInsertNodeObj;
-        boolean nodePSFlag;
-        boolean isEquivalent;
         for (OWLClass currentInsertNode : randomClassList) {
             graphPopulationRecursive(currentInsertNode,clsList);
         }
-
     }
 
     private void graphPopulationRecursive(OWLClass currentInsertNode,CopyOnWriteArrayList<DataImplementationCls> clsList) {
         DataImplementationCls currentInsertNodeObj;
-        boolean nodePSFlag;
-        boolean isEquivalent;
-        int countNodeProcessesByIndividulaThread= 0;
+        boolean nodePSFlag=false;
         // System.out.println(Thread.currentThread().getName());
         // current node is the child of any node // top down approach
         currentInsertNodeObj = new DataImplementationCls(currentInsertNode);
-        nodePSFlag = false;
         nodePSFlag = topDownSearch(clsList, currentInsertNodeObj);
         // if current dataElement is not inferred by any processed
         // dataElement
@@ -186,7 +182,6 @@ public class OwlSequentialParsing {
 
         if (currentInsertNodeObj.getDataElement() == topNode)
             rootElementIndex = clsList.indexOf(currentInsertNodeObj);
-
 
         // Bottom Down Traversal
         // wo kisi ka parent hai ke nai
@@ -204,7 +199,6 @@ public class OwlSequentialParsing {
                 if(clsList.size() > countNodeProcessesByIndividulaThread)
                 {
                     System.out.println("Rerunning bottom search node...........");
-                    System.out.println("clsList.size()"+clsList.size()+"countNodeProcessesByIndividulaThread"+countNodeProcessesByIndividulaThread);
                     bottomUpSearch(clsList,currentInsertNodeObj);
                 }
                 clsList.get(i).setEquivalentDataSet(equiClassMap.get(clsList.get(i).getDataElement()));
