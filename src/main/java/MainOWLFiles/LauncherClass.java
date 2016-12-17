@@ -4,6 +4,7 @@ import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -13,8 +14,8 @@ import java.util.concurrent.ForkJoinPool;
 
 public class LauncherClass {
     // Pizza Ontology file use for processing
-    //private static final String pizzalink = "http://www.cs.ox.ac.uk/isg/ontologies/lib/OBO/NIF_GrossAnatomy/2012-10-12/00354.owl";
-    //private static final File pizzalink = new File("C:\\Users\\User\\Desktop\\owl files\\00721.owl.xml");
+    //private static final String pizzalink = "http://www.cs.ox.ac.uk/isg/ontologies/lib/Phenoscape/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FBFO_0000053_some_http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252Fpato/2012-07-07/00762.owl";
+    private static final File pizzalink = new File("/Users/shubhamsharma/Downloads/00762.owl.xml");
     //private static final File pizzalink = new File("C:\\Users\\User\\Desktop\\owl files\\Sawada_1982.xml.owl.xml");
     static OWLOntology ontology;
     static OWLDataFactory df;
@@ -22,8 +23,8 @@ public class LauncherClass {
     public static void main(String[] args) throws OWLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         Scanner reader = new Scanner(System.in);  // Reading from System.in
-        System.out.println("Enter the input OWL file you want to classify:");
-        String pizzalink = reader.nextLine();
+       /* System.out.println("Enter the input OWL file you want to classify:");
+        String pizzalink = reader.nextLine();*/
         //String pizzalink = pizzalinktemp + " ";
         System.out.println("Enter approach TO start with : single,multi,fork,all");
         String approachName = reader.nextLine();
@@ -33,12 +34,18 @@ public class LauncherClass {
         int noThread = reader.nextInt();
 
         CopyOnWriteArrayList<DataImplementationCls> finalGraphList = new CopyOnWriteArrayList<DataImplementationCls>();
+        System.out.println("===================Onltology file object Created START=====================");
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         ontology = manager.loadOntologyFromOntologyDocument(IRI.create(pizzalink));////Load the ontology file
+        System.out.println("===================Onltology file object Created END=====================");
+
+        System.out.println("===================FIle read START=====================");
 
         //Reasoner to parse the owl parse
         Reasoner herm = new Reasoner(ontology);
         df = manager.getOWLDataFactory();
+
+        System.out.println("===================FIle read END=====================");
 
         //calling Graph creation class
         OwlSequentialParsing parser = new OwlSequentialParsing(herm);
@@ -142,7 +149,7 @@ public class LauncherClass {
         //thread approach starts
         System.out.println("\n\n========================================MULTIPLE Threading Framework STARTS==================== ");
         System.out.println("========================================Time consumption ==================================" + duration);
-        System.out.println(finalGraphList);
+        //System.out.println(finalGraphList);
         resultComparator(finalGraphList);
         System.out.println("========================================MULTIPLE Threading Framework ENDS==================== ");
     }
@@ -167,7 +174,7 @@ public class LauncherClass {
         duration = (endTime - startTime);
         System.out.println("\n\n========================================FORK Threading Framework STARTS==================== ");
         System.out.println("========================================Time consumption ==================================" + duration);
-        System.out.println(finalGraphList);
+        //System.out.println(finalGraphList);
         resultComparator(finalGraphList);
         System.out.println("========================================FORK Threading Framework ENDS==================== ");
     }
