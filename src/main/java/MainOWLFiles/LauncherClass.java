@@ -15,7 +15,7 @@ import java.util.concurrent.ForkJoinPool;
 public class LauncherClass {
     // Pizza Ontology file use for processing
     //private static final String pizzalink = "http://www.cs.ox.ac.uk/isg/ontologies/lib/Phenoscape/http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252FBFO_0000053_some_http%253A%252F%252Fpurl.obolibrary.org%252Fobo%252Fpato/2012-07-07/00762.owl";
-    private static final File pizzalink = new File("/Users/shubhamsharma/Downloads/00762.owl.xml");
+    //private static final File pizzalink = new File("/Users/shubhamsharma/Downloads/00762.owl.xml");
     //private static final File pizzalink = new File("C:\\Users\\User\\Desktop\\owl files\\Sawada_1982.xml.owl.xml");
     static OWLOntology ontology;
     static OWLDataFactory df;
@@ -23,8 +23,8 @@ public class LauncherClass {
     public static void main(String[] args) throws OWLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         Scanner reader = new Scanner(System.in);  // Reading from System.in
-       /* System.out.println("Enter the input OWL file you want to classify:");
-        String pizzalink = reader.nextLine();*/
+        System.out.println("Enter the input OWL file you want to classify:");
+        String pizzalink = reader.nextLine();
         //String pizzalink = pizzalinktemp + " ";
         System.out.println("Enter approach TO start with : single,multi,fork,all");
         String approachName = reader.nextLine();
