@@ -198,7 +198,7 @@ public class OwlSequentialParsing {
             countNumberOfTest++;
             if (superClassMap.get(clsList.get(i).getDataElement()) != null
                     && superClassMap.get(clsList.get(i).getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                if(clsList.size() > countNodeProcessesByIndividulaThread && numberOfRerun<10)
+                if(clsList.size() > countNodeProcessesByIndividulaThread && numberOfRerun<LauncherClass.numberOfRerun)
                 {
                     System.out.println("Rerunning bottom search node...........");
                     bottomUpSearch(clsList,currentInsertNodeObj,numberOfRerun++,nonAddedElelemntInRecursion);
@@ -232,7 +232,7 @@ public class OwlSequentialParsing {
            // countNodeProcessesByIndividulaThread+= processedNode.getSuccessorDataSet().size();
             if (subClassHashMap.get(processedNode.getDataElement()) != null
                     && subClassHashMap.get(processedNode.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                if(clsList.size() > countNodeProcessesByIndividulaThread && numberOfRerun<10)
+                if(clsList.size() > countNodeProcessesByIndividulaThread && numberOfRerun<LauncherClass.numberOfRerun)
                 {
                     System.out.println("Rerunning top node search...........");
                     System.out.println("clsList.size()"+clsList.size()+"countNodeProcessesByIndividulaThread"+countNodeProcessesByIndividulaThread);

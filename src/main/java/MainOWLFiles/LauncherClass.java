@@ -19,6 +19,7 @@ public class LauncherClass {
     //private static final File pizzalink = new File("C:\\Users\\User\\Desktop\\owl files\\Sawada_1982.xml.owl.xml");
     static OWLOntology ontology;
     static OWLDataFactory df;
+    static int numberOfRerun = 5;
 
     public static void main(String[] args) throws OWLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
@@ -34,6 +35,8 @@ public class LauncherClass {
         String sortingName = reader.nextLine();
         System.out.println("Enter No of thread to start with if you have chosen apart from single: ");
         int noThread = reader.nextInt();
+        System.out.println("Enter No of rerun: ");
+        numberOfRerun = reader.nextInt();
 
         CopyOnWriteArrayList<DataImplementationCls> finalGraphList = new CopyOnWriteArrayList<DataImplementationCls>();
         System.out.println("===================Onltology file object Created START=====================");
