@@ -25,6 +25,8 @@ public class LauncherClass {
         Scanner reader = new Scanner(System.in);  // Reading from System.in
         System.out.println("Enter the input OWL file you want to classify:");
         String pizzalink = reader.nextLine();
+        System.out.println("Enter the file where to pic:local , host");
+        String fromWhere = reader.nextLine();
         //String pizzalink = pizzalinktemp + " ";
         System.out.println("Enter approach TO start with : single,multi,fork,all");
         String approachName = reader.nextLine();
@@ -36,7 +38,12 @@ public class LauncherClass {
         CopyOnWriteArrayList<DataImplementationCls> finalGraphList = new CopyOnWriteArrayList<DataImplementationCls>();
         System.out.println("===================Onltology file object Created START=====================");
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        ontology = manager.loadOntologyFromOntologyDocument(IRI.create(pizzalink));////Load the ontology file
+        if(fromWhere.toLowerCase().equals("local"))
+        {
+            ontology = manager.loadOntologyFromOntologyDocument(IRI.create(new File(pizzalink)));////Load the ontology file
+
+        }else
+            ontology = manager.loadOntologyFromOntologyDocument(IRI.create(pizzalink));////Load the ontology file
         System.out.println("===================Onltology file object Created END=====================");
 
         System.out.println("===================FIle read START=====================");
