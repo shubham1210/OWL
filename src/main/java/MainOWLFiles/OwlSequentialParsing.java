@@ -4,9 +4,12 @@
 package MainOWLFiles;
 
 import org.semanticweb.HermiT.Reasoner;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.Node;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -17,13 +20,14 @@ public class OwlSequentialParsing {
     static HashMap<OWLClass, Set<OWLClass>> superClassMap = new HashMap<OWLClass, Set<OWLClass>>();
     static HashMap<OWLClass, Set<OWLClass>> equiClassMap = new HashMap<OWLClass, Set<OWLClass>>();
 
-    static List<OWLClass>  randomClassList =  new ArrayList<>();
+    static List<OWLClass> randomClassList = new ArrayList<>();
     static Set<OWLClass> randomClassListDFS = new LinkedHashSet<>();
-    static Set<OWLClass>  randomClassListBFS =  new LinkedHashSet<>();
-    static List<OWLClass>  randomClassListTemp =  new ArrayList<>();
-
-
-
+    static Set<OWLClass> randomClassListBFS = new LinkedHashSet<>();
+    static List<OWLClass> randomClassListTemp = new ArrayList<>();
+    static Set<OWLClass> nonAddedElelemntInRecursion = new HashSet<>();
+    static boolean recursion = true;
+    static HashSet<DataImplementationCls> bottomUp = new HashSet<>();
+    static HashSet<DataImplementationCls> TopDown = new HashSet<>();
     static int countNumberOfTest = 0;
     static OWLClass topNode;
     static OWLClass bottomNode;
@@ -47,9 +51,8 @@ public class OwlSequentialParsing {
 
             // This is list of equivalent classes of given concept given by Hermit reasoner
             Node<OWLClass> equiClass = this.OWLHerm.getEquivalentClasses(oap);
-            Set temp ;
-            for(OWLClass class1 : equiClass.getEntities())
-            {
+            Set temp;
+            for (OWLClass class1 : equiClass.getEntities()) {
                 temp = new HashSet(equiClass.getEntities());
                 temp.remove(class1);
                 equiClassMap.put(class1, temp);
@@ -71,15 +74,21 @@ public class OwlSequentialParsing {
         }
         //System.out.println(this.OWLHerm.getTopClassNode());
         //System.out.println("equiClassMap == "+equiClassMap);
-        removeDuplicateCheck =false;
-        if(topNode ==null)
-        {
-            removeDuplicateCheck =true;
+        removeDuplicateCheck = false;
+        if (topNode == null) {
+            removeDuplicateCheck = true;
             for (Iterator<OWLClass> it = this.OWLHerm.getTopClassNode().getEntities().iterator();
-                 it.hasNext();) {
+                 it.hasNext(); ) {
                 topNode = it.next();
-                break;
+                //break;
             }
+        }
+        if(topNode == null)
+        {
+            topNode = new OwlThing(IRI.create(new File("c:")));
+            randomClassList.add(topNode);
+            subClassHashMap.put(topNode, new HashSet<>());
+            superClassMap.put(topNode, new HashSet<>());
         }
 
     }
@@ -87,19 +96,16 @@ public class OwlSequentialParsing {
     // Method to simply parse the top down class hierarchy from reasoner file
     public void topDownParsing(String Search) throws OWLOntologyCreationException {
 
-        if(Search.equals("DFS") || Search.equals("ALL"))
-        {
+        if (Search.equals("DFS") || Search.equals("ALL")) {
             for (OWLClass cls : OWLHerm.getTopClassNode()) {
-                if (cls.isOWLThing())
-                {
+                if (cls.isOWLThing()) {
                     recursiveDFS(cls);
                 }
             }
         }
-        if(Search.equals("BFS") || Search.equals("ALL")){
+        if (Search.equals("BFS") || Search.equals("ALL")) {
             for (OWLClass cls : OWLHerm.getTopClassNode()) {
-                if (cls.isOWLThing())
-                {
+                if (cls.isOWLThing()) {
                     recursiveBFS(cls);
                 }
             }
@@ -112,7 +118,7 @@ public class OwlSequentialParsing {
         randomClassListDFS.add(cls);
         if (OwlUnreasoningClass.EquivalentClassMap.get(cls) != null) {
             randomClassListDFS.addAll(OwlUnreasoningClass.EquivalentClassMap.get(cls));
-            for (OWLClass owlClass:OwlUnreasoningClass.EquivalentClassMap.get(cls)
+            for (OWLClass owlClass : OwlUnreasoningClass.EquivalentClassMap.get(cls)
                     ) {
                 randomClassListDFS.addAll(OwlUnreasoningClass.subClassMap.get(owlClass));
             }
@@ -156,20 +162,18 @@ public class OwlSequentialParsing {
 
     // This method is used to implement the algorithm to construct final graph
     public void graphPopulation(CopyOnWriteArrayList<DataImplementationCls> clsList, List<OWLClass> randomClassList) {
-        List<DataImplementationCls> nonAddedElelemntInRecursion = new CopyOnWriteArrayList<>();
         for (OWLClass currentInsertNode : randomClassList) {
-            graphPopulationRecursive(currentInsertNode,clsList,nonAddedElelemntInRecursion);
+            graphPopulationRecursive(currentInsertNode, clsList);
         }
-
     }
 
-    private void graphPopulationRecursive(OWLClass currentInsertNode,CopyOnWriteArrayList<DataImplementationCls> clsList, List<DataImplementationCls> nonAddedElelemntInRecursion) {
+    private void graphPopulationRecursive(OWLClass currentInsertNode, CopyOnWriteArrayList<DataImplementationCls> clsList) {
         DataImplementationCls currentInsertNodeObj;
-        boolean nodePSFlag=false;
+        boolean nodePSFlag = false;
         // System.out.println(Thread.currentThread().getName());
         // current node is the child of any node // top down approach
         currentInsertNodeObj = new DataImplementationCls(currentInsertNode);
-        nodePSFlag = topDownSearch(clsList, currentInsertNodeObj,1,nonAddedElelemntInRecursion);
+        nodePSFlag = topDownSearch(clsList, currentInsertNodeObj, 1);
         // if current dataElement is not inferred by any processed
         // dataElement
         if (nodePSFlag == false) {
@@ -179,78 +183,86 @@ public class OwlSequentialParsing {
             // adding father as root of current dataElement
             currentInsertNodeObj.getPredcessorDataSet().add(clsList.get(0).getDataElement());
         }
-        //System.out.println("////////////////"+currentInsertNode);
-        clsList.add(currentInsertNodeObj);
-
-        if (currentInsertNodeObj.getDataElement() == topNode)
-            rootElementIndex = clsList.indexOf(currentInsertNodeObj);
-
         // Bottom Down Traversal
         // wo kisi ka parent hai ke nai
-        nodePSFlag = bottomUpSearch(clsList, currentInsertNodeObj,1,nonAddedElelemntInRecursion);
+        //System.out.println("////////////////"+currentInsertNode);
+        if(OwlSequentialParsing.recursion==true)
+        {
+            clsList.add(currentInsertNodeObj);
+
+            if (currentInsertNodeObj.getDataElement() == topNode)
+                rootElementIndex = clsList.indexOf(currentInsertNodeObj);
+        }
+        bottomUpSearch(clsList, currentInsertNodeObj,1);
 
     }
-    private boolean bottomUpSearch(CopyOnWriteArrayList<DataImplementationCls> clsList,DataImplementationCls currentInsertNodeObj,int numberOfRerun, List<DataImplementationCls> nonAddedElelemntInRecursion)
-    {
-        boolean flag= false;
-        int countNodeProcessesByIndividulaThread=clsList.size();
+
+    private boolean bottomUpSearch(CopyOnWriteArrayList<DataImplementationCls> clsList, DataImplementationCls currentInsertNodeObj, int numberOfRerun) {
+        boolean flag = false;
         for (int i = clsList.size() - 1; i >= 0; i--) {
+            int countNodeProcessesByIndividulaThread = clsList.get(i).getPredcessorDataSet().size();
+            int countNodeProcessesByIndividulaThreadS = clsList.get(i).getSuccessorDataSet().size();
+
             countNumberOfTest++;
             if (superClassMap.get(clsList.get(i).getDataElement()) != null
                     && superClassMap.get(clsList.get(i).getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                if(clsList.size() > countNodeProcessesByIndividulaThread && numberOfRerun<LauncherClass.numberOfRerun)
-                {
+                if (recursion && (clsList.get(i).getPredcessorDataSet().size() > countNodeProcessesByIndividulaThread
+                        || clsList.get(i).getSuccessorDataSet().size() > countNodeProcessesByIndividulaThreadS)
+                        && numberOfRerun < LauncherClass.numberOfRerun) {
                     System.out.println("Rerunning bottom search node...........");
-                    bottomUpSearch(clsList,currentInsertNodeObj,numberOfRerun++,nonAddedElelemntInRecursion);
+                    System.out.println("clsList.size()" + TopDown.size() + "countNodeProcessesByIndividulaThread" + countNodeProcessesByIndividulaThread);
+                    bottomUpSearch(clsList, currentInsertNodeObj, numberOfRerun++);
+                } else if (numberOfRerun < LauncherClass.numberOfRerun) {
+                    synchronized (clsList.get(i).getPredcessorDataSet()) {
+                       // if (recursion == false) System.out.println("adding...........");
+                        clsList.get(i).setEquivalentDataSet(equiClassMap.get(clsList.get(i).getDataElement()));
+                        currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
+                        currentInsertNodeObj.getSuccessorDataSet().add(clsList.get(i).getDataElement());
+                        clsList.get(i).getPredcessorDataSet().remove(clsList.get(0).getDataElement());
+                        clsList.get(i).getPredcessorDataSet().add(currentInsertNodeObj.getDataElement());
+                        clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
+                        TopDown.add(currentInsertNodeObj);
+                        flag = true;
+                    }
                 }
-                //else if(numberOfRerun<3)
-                {
-                    clsList.get(i).setEquivalentDataSet(equiClassMap.get(clsList.get(i).getDataElement()));
-                    currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
-                    currentInsertNodeObj.getSuccessorDataSet().add(clsList.get(i).getDataElement());
-                    clsList.get(i).getPredcessorDataSet().remove(clsList.get(0).getDataElement());
-                    clsList.get(i).getPredcessorDataSet().add(currentInsertNodeObj.getDataElement());
-                    clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
-                    flag = true;
+                else {
+                    nonAddedElelemntInRecursion.add(currentInsertNodeObj.getDataElement());
                 }
-                /*else if(numberOfRerun==3)
-                {
-                    nonAddedElelemntInRecursion.add(currentInsertNodeObj);
-                }*/
             }
         }
         return flag;
     }
 
-    private boolean topDownSearch(CopyOnWriteArrayList<DataImplementationCls> clsList,DataImplementationCls currentInsertNodeObj,int numberOfRerun, List<DataImplementationCls> nonAddedElelemntInRecursion)
-    {
+    private boolean topDownSearch(CopyOnWriteArrayList<DataImplementationCls> clsList, DataImplementationCls currentInsertNodeObj, int numberOfRerun) {
 
-        boolean flag= false;
-        int countNodeProcessesByIndividulaThread=clsList.size();
+        boolean flag = false;
         for (DataImplementationCls processedNode : clsList) {
+            int countNodeProcessesByIndividulaThread = processedNode.getSuccessorDataSet().size();
+            int countNodeProcessesByIndividulaThreadP = processedNode.getPredcessorDataSet().size();
             countNumberOfTest++;
-           // countNodeProcessesByIndividulaThread+= processedNode.getSuccessorDataSet().size();
             if (subClassHashMap.get(processedNode.getDataElement()) != null
                     && subClassHashMap.get(processedNode.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                if(clsList.size() > countNodeProcessesByIndividulaThread && numberOfRerun<LauncherClass.numberOfRerun)
+                if (recursion && (processedNode.getSuccessorDataSet().size() > countNodeProcessesByIndividulaThread
+                        || processedNode.getPredcessorDataSet().size() > countNodeProcessesByIndividulaThreadP)
+                        && numberOfRerun < LauncherClass.numberOfRerun)//
                 {
                     System.out.println("Rerunning top node search...........");
-                    System.out.println("clsList.size()"+clsList.size()+"countNodeProcessesByIndividulaThread"+countNodeProcessesByIndividulaThread);
-                    topDownSearch(clsList,currentInsertNodeObj,numberOfRerun++,nonAddedElelemntInRecursion);
+                    topDownSearch(clsList, currentInsertNodeObj, numberOfRerun++);
+                } else if (numberOfRerun < LauncherClass.numberOfRerun) {
+                    //if (recursion == false) System.out.println("adding...........");
+                    synchronized (processedNode.getSuccessorDataSet())
+                    {
+                        processedNode.setEquivalentDataSet(equiClassMap.get(processedNode.getDataElement()));
+                        currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
+                        currentInsertNodeObj.getPredcessorDataSet().add(processedNode.getDataElement());
+                        processedNode.getSuccessorDataSet().add(currentInsertNodeObj.getDataElement());
+                        clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
+                        flag = true;
+                        bottomUp.add(currentInsertNodeObj);
+                    }
+                } else {
+                    nonAddedElelemntInRecursion.add(currentInsertNodeObj.getDataElement());
                 }
-                //else if(numberOfRerun<3)
-                {
-                    processedNode.setEquivalentDataSet(equiClassMap.get(processedNode.getDataElement()));
-                    currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
-                    currentInsertNodeObj.getPredcessorDataSet().add(processedNode.getDataElement());
-                    processedNode.getSuccessorDataSet().add(currentInsertNodeObj.getDataElement());
-                    clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
-                    flag= true;
-                }
-                /*else if(numberOfRerun==3)
-                {
-                    nonAddedElelemntInRecursion.add(currentInsertNodeObj);
-                }*/
             }
         }
 
