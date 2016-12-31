@@ -80,7 +80,7 @@ public class OwlSequentialParsing {
             for (Iterator<OWLClass> it = this.OWLHerm.getTopClassNode().getEntities().iterator();
                  it.hasNext(); ) {
                 topNode = it.next();
-                //break;
+                break;
             }
         }
         if(topNode == null)
@@ -115,6 +115,15 @@ public class OwlSequentialParsing {
     // recursive method for DFS approach
     private void recursiveDFS(OWLClass cls) {
         Set<OWLClass> subClasses = OwlUnreasoningClass.subClassMap.get(cls);
+        if(OwlUnreasoningClass.OwlThingFound == false)
+        {
+            if(subClasses==null)
+            {
+                subClasses=new HashSet<OWLClass>();
+            }
+            subClasses.addAll(OwlUnreasoningClass.listOfClassesWithNoParent);
+            OwlUnreasoningClass.OwlThingFound=true;
+        }
         randomClassListDFS.add(cls);
         if (OwlUnreasoningClass.EquivalentClassMap.get(cls) != null) {
             randomClassListDFS.addAll(OwlUnreasoningClass.EquivalentClassMap.get(cls));
@@ -144,6 +153,15 @@ public class OwlSequentialParsing {
         while (!queue.isEmpty()) {
             OWLClass node = queue.remove();
             Set<OWLClass> subClasses = OwlUnreasoningClass.subClassMap.get(node); //this.OWLHerm.getSubClasses(node, true).getFlattened();//
+            if(OwlUnreasoningClass.OwlThingFound == false)
+            {
+                if(subClasses==null)
+                {
+                    subClasses=new HashSet<OWLClass>();
+                }
+                subClasses.addAll(OwlUnreasoningClass.listOfClassesWithNoParent);
+                OwlUnreasoningClass.OwlThingFound=true;
+            }
             if (OwlUnreasoningClass.EquivalentClassMap.get(node) != null) {
                 randomClassListBFS.addAll(OwlUnreasoningClass.EquivalentClassMap.get(node));
                 for (OWLClass owlClass : OwlUnreasoningClass.EquivalentClassMap.get(node)
