@@ -162,12 +162,21 @@ public class OwlSequentialParsing {
 
     // This method is used to implement the algorithm to construct final graph
     public void graphPopulation(CopyOnWriteArrayList<DataImplementationCls> clsList, List<OWLClass> randomClassList) {
+        List<DataImplementationCls> currentInsertNodeObjList = new ArrayList<>();
         for (OWLClass currentInsertNode : randomClassList) {
-            graphPopulationRecursive(currentInsertNode, clsList);
+            graphPopulationRecursive(currentInsertNode, clsList,currentInsertNodeObjList);
         }
+        System.out.println("======="+clsList.size());
+        //while(clsList.size()!=LauncherClass.sizeOfList){}
+        System.out.println("===acceses====");
+
+        for (DataImplementationCls currentInsertNode : currentInsertNodeObjList) {
+            bottomUpSearch(clsList, currentInsertNode,1);
+        }
+
     }
 
-    private void graphPopulationRecursive(OWLClass currentInsertNode, CopyOnWriteArrayList<DataImplementationCls> clsList) {
+    private void graphPopulationRecursive(OWLClass currentInsertNode, CopyOnWriteArrayList<DataImplementationCls> clsList,List<DataImplementationCls> currentInsertNodeObjList) {
         DataImplementationCls currentInsertNodeObj;
         boolean nodePSFlag = false;
         // System.out.println(Thread.currentThread().getName());
@@ -189,12 +198,10 @@ public class OwlSequentialParsing {
         if(OwlSequentialParsing.recursion==true)
         {
             clsList.add(currentInsertNodeObj);
-
+            currentInsertNodeObjList.add(currentInsertNodeObj);
             if (currentInsertNodeObj.getDataElement() == topNode)
                 rootElementIndex = clsList.indexOf(currentInsertNodeObj);
         }
-        bottomUpSearch(clsList, currentInsertNodeObj,1);
-
     }
 
     private boolean bottomUpSearch(CopyOnWriteArrayList<DataImplementationCls> clsList, DataImplementationCls currentInsertNodeObj, int numberOfRerun) {

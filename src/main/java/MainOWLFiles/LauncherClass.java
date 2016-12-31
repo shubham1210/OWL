@@ -19,7 +19,7 @@ public class LauncherClass {
     static OWLOntology ontology;
     static OWLDataFactory df;
     static int numberOfRerun = 5;
-
+    static int sizeOfList =0;
     public static void main(String[] args) throws OWLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         Scanner reader = new Scanner(System.in);  // Reading from System.in
@@ -45,7 +45,7 @@ public class LauncherClass {
             ontology = manager.loadOntologyFromOntologyDocument(IRI.create(new File(pizzalink)));////Load the ontology file
 
         }else
-            ontology = manager.loadOntologyFromOntologyDocument(IRI.create(pizzalink));////Load the ontology file
+            ontology = manager.loadOntologyFromOntologyDocument(IRI.create(pizzalink.trim()));////Load the ontology file
         System.out.println("===================Onltology file object Created END=====================");
 
         System.out.println("===================FIle read START=====================");
@@ -74,7 +74,7 @@ public class LauncherClass {
         List DFSlist = new ArrayList(OwlSequentialParsing.randomClassListDFS);*/
 
         //System.out.println(OwlSequentialParsing.randomClassListBFS);
-
+        sizeOfList = sortedList.size();
         //==================SINGLE THREAD EXECUTION START================
         if(approachName!=null && (approachName.toLowerCase().equals("single") || approachName.toLowerCase().equals("all")))
             startSingleThread(finalGraphList, parser, sortedList);
@@ -146,7 +146,7 @@ public class LauncherClass {
         startTime = System.currentTimeMillis();
 
         startThreadOnBasisOFParsingNumber(noThread, finalGraphList, parser, list);
-        resultComparator(finalGraphList,false);
+        //resultComparator(finalGraphList,false);
         System.out.println("\n\n========================================NON added ==================== "+OwlSequentialParsing.nonAddedElelemntInRecursion.size());
         List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
         OwlSequentialParsing.recursion =false;
@@ -176,7 +176,7 @@ public class LauncherClass {
 
         startTime = System.currentTimeMillis();
         startForkOnBasisOFParsingNumber(noThread, finalGraphList, parser, list);
-        resultComparator(finalGraphList,false);
+        //resultComparator(finalGraphList,false);
         System.out.println("\n\n========================================NON added ==================== "+OwlSequentialParsing.nonAddedElelemntInRecursion.size());
         List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
         OwlSequentialParsing.recursion =false;
@@ -338,7 +338,7 @@ public class LauncherClass {
                     //iterate all successors of DataImplementationClass and check value in HashMap SuccessorSet
                     if (!successorSet.contains(currentObj)) {
                         // TODO: print some message
-                        OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
+                        //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                         if(logging)
                         System.out.println( "Missing Successor nodes in Reasoner: ======= "+currentObj +"is not present in child list of.." +element );
                     }
@@ -349,7 +349,7 @@ public class LauncherClass {
                     // visa versa
                     if (!succesorElement.isOWLNothing()&&!dataImplementationCls.getSuccessorDataSet().contains(succesorElement) ) {
                         // TODO: print some message
-                        OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
+                        //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                         if(logging)
                         System.out.println("Missing Successor nodes in fina graph"+succesorElement +"is not present in child list of final graph.." + element);
                     }
@@ -368,7 +368,7 @@ public class LauncherClass {
                         //iterate all successors of DataImplementationClass and check value in HashMap SuccessorSet
                         if (!predecessorSet.contains(currentObj)) {
                             // TODO: print some message
-                            OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
+                            //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                             if(logging)
                             System.out.println("Missing predecessor nodes in reasoner"+currentObj +"is not present in child list of reasoner.." + element);
                         }
@@ -380,7 +380,7 @@ public class LauncherClass {
                         // visa versa
                         if (!dataImplementationCls.getPredcessorDataSet().contains(predecessorElement) ) {
                             // TODO: print some message
-                            OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
+                            //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                             if(logging)
                             System.out.println("Missing predecessor nodes in final graph"+predecessorElement +"is not present in child list of final graph.." + element);
                         }
@@ -398,7 +398,7 @@ public class LauncherClass {
                             //iterate all successors of DataImplementationClass and check value in HashMap SuccessorSet
                             if (!equivalentSet.contains(currentObj)) {
                                 // TODO: print some message
-                                OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
+                                //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                                 if(logging)
                                 System.out.println("equivalentSet FAILURE 1 !!!" + currentObj);
                             }
@@ -409,7 +409,7 @@ public class LauncherClass {
                             // visa versa
                             if (!dataImplementationCls.getEquivalentDataSet().contains(equiElement)) {
                                 // TODO: print some message
-                                OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
+                                //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                                 if(logging)
                                 System.out.println("equivalentSet FAILURE 2 !!!" + equiElement);
                             }
