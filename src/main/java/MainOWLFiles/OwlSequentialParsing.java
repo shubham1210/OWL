@@ -231,11 +231,9 @@ public class OwlSequentialParsing {
             countNumberOfTest++;
             if (superClassMap.get(clsList.get(i).getDataElement()) != null
                     && superClassMap.get(clsList.get(i).getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                if (recursion && (clsList.get(i).getPredcessorDataSet().size() > countNodeProcessesByIndividulaThread
-                        || clsList.get(i).getSuccessorDataSet().size() > countNodeProcessesByIndividulaThreadS)
-                        && numberOfRerun < LauncherClass.numberOfRerun) {
-                    System.out.println("Rerunning bottom search node...........");
-                    System.out.println("clsList.size()" + TopDown.size() + "countNodeProcessesByIndividulaThread" + countNodeProcessesByIndividulaThread);
+                if (recursion && (clsList.get(i).getPredcessorDataSet().size() > countNodeProcessesByIndividulaThread)
+                        && numberOfRerun < LauncherClass.numberOfRerun) {//|| clsList.get(i).getSuccessorDataSet().size() > countNodeProcessesByIndividulaThreadS
+                    System.out.println("Rerunning bottom search node..........."+clsList.get(i).getPredcessorDataSet().size() +"====="+countNodeProcessesByIndividulaThread);
                     bottomUpSearch(clsList, currentInsertNodeObj, numberOfRerun++);
                 } else if (numberOfRerun < LauncherClass.numberOfRerun) {
                     synchronized (clsList.get(i).getPredcessorDataSet()) {
@@ -251,6 +249,7 @@ public class OwlSequentialParsing {
                     }
                 }
                 else {
+                    System.out.println("i am here");
                     nonAddedElelemntInRecursion.add(currentInsertNodeObj.getDataElement());
                 }
             }
@@ -268,8 +267,8 @@ public class OwlSequentialParsing {
             if (subClassHashMap.get(processedNode.getDataElement()) != null
                     && subClassHashMap.get(processedNode.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
                 if (recursion && (processedNode.getSuccessorDataSet().size() > countNodeProcessesByIndividulaThread
-                        || processedNode.getPredcessorDataSet().size() > countNodeProcessesByIndividulaThreadP)
-                        && numberOfRerun < LauncherClass.numberOfRerun)//
+                        )
+                        && numberOfRerun < LauncherClass.numberOfRerun)//|| processedNode.getPredcessorDataSet().size() > countNodeProcessesByIndividulaThreadP
                 {
                     System.out.println("Rerunning top node search...........");
                     topDownSearch(clsList, currentInsertNodeObj, numberOfRerun++);
