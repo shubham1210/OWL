@@ -245,6 +245,7 @@ public class OwlSequentialParsing {
                         clsList.get(i).getPredcessorDataSet().add(currentInsertNodeObj.getDataElement());
                         clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
                         TopDown.add(currentInsertNodeObj);
+                        countNodeProcessesByIndividulaThread++;
                         flag = true;
                     }
                 }
