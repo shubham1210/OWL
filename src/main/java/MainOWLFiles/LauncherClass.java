@@ -58,14 +58,15 @@ public class LauncherClass {
 
         //calling Graph creation class
         OwlSequentialParsing parser = new OwlSequentialParsing(herm);
-        System.out.println("===================SUBCLASS FETCH START=====================");
+        System.out.println("===================SUBCLASS/Super loader FETCH START=====================");
         OwlUnreasoningClass.subClassFetch();
-        System.out.println("===================SUBCLASS FETCH END=====================");
+        System.out.println("===================SUBCLASS/Super loader FETCH END=====================");
         System.gc();
-        System.out.println("===================Ontology FETCH START=====================");
+        System.out.println("===================Hermit Super/Sub class FETCH START=====================");
         parser.ontologyClassList();
-        System.out.println("===================Ontology FETCH END=====================");
-        System.out.println("===================topDownParsing FETCH START=====================");
+        System.out.println("===================Hermit Super/sub class FETCH END=====================");
+        System.gc();
+        System.out.println("===================BFS/DFS LIST  START=====================");
         parser.topDownParsing(sortingName.toUpperCase());
         System.out.println("===================topDownParsing FETCH END=====================");
         System.gc();
@@ -75,6 +76,7 @@ public class LauncherClass {
 
         //System.out.println(OwlSequentialParsing.randomClassListBFS);
         sizeOfList = sortedList.size();
+        System.out.println("number of random element after BFS/DFS==="+sizeOfList);
         //==================SINGLE THREAD EXECUTION START================
         if(approachName!=null && (approachName.toLowerCase().equals("single") || approachName.toLowerCase().equals("all")))
             startSingleThread(finalGraphList, parser, sortedList);

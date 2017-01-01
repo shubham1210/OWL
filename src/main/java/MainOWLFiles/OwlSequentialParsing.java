@@ -122,6 +122,7 @@ public class OwlSequentialParsing {
                 subClasses=new HashSet<OWLClass>();
             }
             subClasses.addAll(OwlUnreasoningClass.listOfClassesWithNoParent);
+            System.out.println("adding classes that has no parent == "+subClasses);
             OwlUnreasoningClass.OwlThingFound=true;
         }
         randomClassListDFS.add(cls);
@@ -161,6 +162,7 @@ public class OwlSequentialParsing {
                 }
                 subClasses.addAll(OwlUnreasoningClass.listOfClassesWithNoParent);
                 OwlUnreasoningClass.OwlThingFound=true;
+                System.out.println("adding classes that has no parent == "+subClasses);
             }
             if (OwlUnreasoningClass.EquivalentClassMap.get(node) != null) {
                 randomClassListBFS.addAll(OwlUnreasoningClass.EquivalentClassMap.get(node));
@@ -186,8 +188,6 @@ public class OwlSequentialParsing {
         }
         System.out.println("======="+clsList.size());
         //while(clsList.size()!=LauncherClass.sizeOfList){}
-        System.out.println("===acceses====");
-
         for (DataImplementationCls currentInsertNode : currentInsertNodeObjList) {
             bottomUpSearch(clsList, currentInsertNode,1);
         }
@@ -244,13 +244,12 @@ public class OwlSequentialParsing {
                         clsList.get(i).getPredcessorDataSet().remove(clsList.get(0).getDataElement());
                         clsList.get(i).getPredcessorDataSet().add(currentInsertNodeObj.getDataElement());
                         clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
-                        TopDown.add(currentInsertNodeObj);
                         countNodeProcessesByIndividulaThread++;
                         flag = true;
                     }
                 }
                 else {
-                    System.out.println("i am here");
+                    System.out.println("adding non added element from BOTTOM UP");
                     nonAddedElelemntInRecursion.add(currentInsertNodeObj.getDataElement());
                 }
             }
@@ -283,9 +282,9 @@ public class OwlSequentialParsing {
                         processedNode.getSuccessorDataSet().add(currentInsertNodeObj.getDataElement());
                         clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
                         flag = true;
-                        bottomUp.add(currentInsertNodeObj);
                     }
                 } else {
+                    System.out.println("adding non added element from TOP UP");
                     nonAddedElelemntInRecursion.add(currentInsertNodeObj.getDataElement());
                 }
             }
