@@ -217,13 +217,13 @@ public class OwlSequentialParsing {
             // adding father as root of current dataElement
             currentInsertNodeObj.getPredcessorDataSet().add(clsList.get(0).getDataElement());
         }
+        currentInsertNodeObjList.add(currentInsertNodeObj);
         // Bottom Down Traversal
         // wo kisi ka parent hai ke nai
         //System.out.println("////////////////"+currentInsertNode);
         if(OwlSequentialParsing.recursion==true)
         {
             clsList.add(currentInsertNodeObj);
-            currentInsertNodeObjList.add(currentInsertNodeObj);
             if (currentInsertNodeObj.getDataElement() == topNode)
                 rootElementIndex = clsList.indexOf(currentInsertNodeObj);
         }
