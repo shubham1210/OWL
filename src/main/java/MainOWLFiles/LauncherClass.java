@@ -32,8 +32,10 @@ public class LauncherClass {
         String approachName = reader.nextLine();
         System.out.println("For Which Algo it should run:BFS,DFS");
         String sortingName = reader.nextLine();
-        System.out.println("Enter No of thread to start with if you have chosen apart from single: ");
+        System.out.println("Enter No of Partition for example if you enter 1000 it means fileSize/1000: ");
         int noThread = reader.nextInt();
+        System.out.println("Enter Size of Thread pool: ");
+        int sizePool = reader.nextInt();
         System.out.println("Enter No of rerun: ");
         numberOfRerun = reader.nextInt();
 
@@ -86,13 +88,13 @@ public class LauncherClass {
 
         //==================MULTI THREAD EXECUTION START================
         if(approachName!=null && (approachName.toLowerCase().equals("multi") || approachName.toLowerCase().equals("all")))
-            startMultipleThread(finalGraphList,parser,sortedList,noThread);
+            startMultipleThread(sizePool,finalGraphList,parser,sortedList,noThread);
 
         //==================MULTI THREAD EXECUTION END================
 
         //==================FORK AND JOIN EXECUTION START================
         if(approachName!=null && (approachName.toLowerCase().equals("fork") || approachName.toLowerCase().equals("all")))
-            startForkThread(finalGraphList,parser,sortedList,noThread);
+            startForkThread(sizePool,finalGraphList,parser,sortedList,noThread);
         //==================FORK AND JOIN EXECUTION END================
 
 
@@ -118,6 +120,7 @@ public class LauncherClass {
         //adding top node to tree ends
         startTime = System.currentTimeMillis();
         parser.graphPopulation(finalGraphList, list);
+        parser.graphPopulationBottom(finalGraphList, OwlSequentialParsing.currentInsertNodeObjList);
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
 
@@ -139,7 +142,7 @@ public class LauncherClass {
 
     }
 
-    public static void startMultipleThread(CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List list,int noThread) {
+    public static void startMultipleThread(int sizePool , CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List list,int noThread) {
         long startTime, endTime;
         float duration;
         //adding top node to tree starts
@@ -147,12 +150,18 @@ public class LauncherClass {
         //adding top node to tree ends
         startTime = System.currentTimeMillis();
 
-        startThreadOnBasisOFParsingNumber(noThread, finalGraphList, parser, list);
+        startThreadOnBasisOFParsingNumber(sizePool,noThread, finalGraphList, parser, list);
         //resultComparator(finalGraphList,false);
         System.out.println("\n\n========================================NON added ==================== "+OwlSequentialParsing.nonAddedElelemntInRecursion.size());
-        List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
-        OwlSequentialParsing.recursion =false;
-        startThreadOnBasisOFParsingNumber(2, finalGraphList, parser, temp);
+
+        if(OwlSequentialParsing.nonAddedElelemntInRecursion.size()>0)
+        {
+            List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
+            OwlSequentialParsing.recursion =false;
+            OwlSequentialParsing.currentInsertNodeObjList.clear();
+            startThreadOnBasisOFParsingNumber(sizePool,noThread, finalGraphList, parser, temp);
+        }
+
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
         if (OwlSequentialParsing.removeDuplicateCheck == false) {
@@ -169,7 +178,7 @@ public class LauncherClass {
         System.out.println("========================================MULTIPLE Threading Framework ENDS==================== ");
     }
 
-    public static void startForkThread(CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List list,int noThread) {
+    public static void startForkThread(int sizePool, CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List list,int noThread) {
         long startTime, endTime;
         float duration;
         //fork and join
@@ -177,14 +186,18 @@ public class LauncherClass {
         finalGraphList = resetListAndAddRoot(finalGraphList);
 
         startTime = System.currentTimeMillis();
-        startForkOnBasisOFParsingNumber(noThread, finalGraphList, parser, list);
+        startForkOnBasisOFParsingNumber(sizePool,noThread, finalGraphList, parser, list);
         //resultComparator(finalGraphList,false);
         System.out.println("\n\n========================================NON added ==================== "+OwlSequentialParsing.nonAddedElelemntInRecursion.size());
-        List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
-        OwlSequentialParsing.recursion =false;
-        startForkOnBasisOFParsingNumber(noThread, finalGraphList, parser, temp);
-        endTime = System.currentTimeMillis();
+        if(OwlSequentialParsing.nonAddedElelemntInRecursion.size()>0)
+        {
+            List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
+            OwlSequentialParsing.recursion =false;
+            OwlSequentialParsing.currentInsertNodeObjList.clear();
+            startForkOnBasisOFParsingNumber(sizePool,noThread, finalGraphList, parser, temp);
 
+        }
+        endTime = System.currentTimeMillis();
         if (OwlSequentialParsing.removeDuplicateCheck == false) {
             //removing duplicate dataElement starts\
             finalGraphList = removeDuplicateElement(finalGraphList);
@@ -221,10 +234,11 @@ public class LauncherClass {
     }
 
 
-    public static void startThreadOnBasisOFParsingNumber(int threadsNumber, CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List<OWLClass> listTobeWorkedOn) {
-        ExecutorService executor = Executors.newFixedThreadPool(threadsNumber);//creating a pool of 5 threads
+    public static void startThreadOnBasisOFParsingNumber(int sizePool , int threadsNumber, CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List<OWLClass> listTobeWorkedOn) {
+        ExecutorService executor = Executors.newFixedThreadPool(sizePool);//creating a pool of 5 threads
         int size = listTobeWorkedOn.size();
         List<OWLClass> list;
+        List<DataImplementationCls> listBottom;
         List<Thread> threads = new ArrayList<Thread>();
         Thread th;
         Runnable proExec;
@@ -265,16 +279,60 @@ public class LauncherClass {
         }
         executor.shutdown();
         while (!executor.isTerminated()) {   }
+
+        System.out.println("top Down Complete === "+OwlSequentialParsing.currentInsertNodeObjList.size());
+        //=========================================
+
+        executor = Executors.newFixedThreadPool(10);//creating a pool of 5 threads
+        intialRange = 0;
+        numberOfThreads = size / threadsNumber;
+        if (threadsNumber < size) {
+
+            while (numberOfThreads < size) {
+                listBottom = OwlSequentialParsing.currentInsertNodeObjList.subList(intialRange, numberOfThreads);
+                proExec = new ThreadExecutionBottom(finalGraphList, parser, listBottom);
+                Runnable worker = proExec;
+                executor.execute(worker);//calling execute method of ExecutorService
+                if (numberOfThreads + (size / threadsNumber) < size) {
+                    intialRange = numberOfThreads;
+                    numberOfThreads += size / threadsNumber;
+                } else {
+                    break;
+                }
+            }
+            if (numberOfThreads < size) {
+                listBottom = OwlSequentialParsing.currentInsertNodeObjList.subList(numberOfThreads, size);
+                proExec = new ThreadExecutionBottom(finalGraphList, parser, listBottom);
+                Runnable worker = proExec;
+                executor.execute(worker);//calling execute method of ExecutorService
+            }
+            if(threadsNumber == 1)
+            {
+                proExec = new ThreadExecutionBottom(finalGraphList, parser, OwlSequentialParsing.currentInsertNodeObjList);
+                Runnable worker = proExec;
+                executor.execute(worker);//calling execute method of ExecutorService
+            }
+
+        }
+        else
+        {
+            proExec = new ThreadExecutionBottom(finalGraphList, parser, OwlSequentialParsing.currentInsertNodeObjList);
+            Runnable worker = proExec;
+            executor.execute(worker);//calling execute method of ExecutorService
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {   }
     }
 
-    public static void startForkOnBasisOFParsingNumber(int numOfThreads, CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List<OWLClass> listTobeWorkedOn) {
+    public static void startForkOnBasisOFParsingNumber(int poolSize, int numOfThreads, CopyOnWriteArrayList<DataImplementationCls> finalGraphList, OwlSequentialParsing parser, List<OWLClass> listTobeWorkedOn) {
         int numOfNodes = listTobeWorkedOn.size();
         int nodesPerThread = numOfNodes / numOfThreads;
         int intialRange = 0;
         MyRecursiveAction myRecursiveAction;
         List<MyRecursiveAction> myRecursiveActionList = new ArrayList<MyRecursiveAction>();
-        ForkJoinPool forkJoinPool = new ForkJoinPool();
+        ForkJoinPool forkJoinPool = new ForkJoinPool(poolSize);
         List<OWLClass> list;
+        List<DataImplementationCls> listBottom;
         if (numOfThreads < numOfNodes) {
             while (nodesPerThread < numOfNodes) {
                 list = listTobeWorkedOn.subList(intialRange, nodesPerThread);
@@ -309,17 +367,48 @@ public class LauncherClass {
             forkJoinPool.execute(myRecursiveAction);
             myRecursiveActionList.add(myRecursiveAction);
         }
-        int count = 0;
-        while (true) {
-            if (count == myRecursiveActionList.size()) break;
-            count = 0;
-            for (MyRecursiveAction myRecursiveAction1 : myRecursiveActionList) {
-                if (myRecursiveAction1.isDone()) {
-                    count++;
+        System.out.println("fork pool size==="+forkJoinPool.getPoolSize());
+        System.out.println("fork Parallelism === "+forkJoinPool.getParallelism());
+        forkJoinPool.shutdown();
+        while (!forkJoinPool.isTerminated()) {   }
+
+        numOfNodes = OwlSequentialParsing.currentInsertNodeObjList.size();
+        nodesPerThread = numOfNodes / numOfThreads;
+        intialRange = 0;
+        MyRecursiveActionBottom myRecursiveActionBottom;
+
+        forkJoinPool = new ForkJoinPool(poolSize);
+        if (numOfThreads < numOfNodes) {
+            while (nodesPerThread < numOfNodes) {
+                listBottom = OwlSequentialParsing.currentInsertNodeObjList.subList(intialRange, nodesPerThread);
+                myRecursiveActionBottom = new MyRecursiveActionBottom(finalGraphList, parser, listBottom);
+                forkJoinPool.execute(myRecursiveActionBottom);
+                if (nodesPerThread + (numOfNodes / numOfThreads) < numOfNodes) {
+                    intialRange = nodesPerThread;
+                    nodesPerThread += numOfNodes / numOfThreads;
+                } else {
+                    break;
                 }
             }
-            //printThreadDetailsFork(forkJoinPool);
+            if (nodesPerThread < numOfNodes) {
+                listBottom = OwlSequentialParsing.currentInsertNodeObjList.subList(nodesPerThread, numOfNodes);
+                myRecursiveActionBottom = new MyRecursiveActionBottom(finalGraphList, parser, listBottom);
+                forkJoinPool.execute(myRecursiveActionBottom);
+            }
+            else if(numOfThreads == 1)
+            {
+                myRecursiveActionBottom = new MyRecursiveActionBottom(finalGraphList, parser, OwlSequentialParsing.currentInsertNodeObjList);
+                forkJoinPool.execute(myRecursiveActionBottom);
+            }
+        }else
+        {
+            myRecursiveActionBottom = new MyRecursiveActionBottom(finalGraphList, parser, OwlSequentialParsing.currentInsertNodeObjList);
+            forkJoinPool.execute(myRecursiveActionBottom);
         }
+        System.out.println("fork pool size Bottom==="+forkJoinPool.getPoolSize());
+        System.out.println("fork Parallelism Bottom=== "+forkJoinPool.getParallelism());
+        forkJoinPool.shutdown();
+        while (!forkJoinPool.isTerminated()) {   }
     }
 
     public static void resultComparator(CopyOnWriteArrayList<DataImplementationCls> finalGraphList,boolean logging) {

@@ -19,6 +19,7 @@ public class OwlSequentialParsing {
     static HashMap<OWLClass, Set<OWLClass>> subClassHashMap = new HashMap<OWLClass, Set<OWLClass>>();
     static HashMap<OWLClass, Set<OWLClass>> superClassMap = new HashMap<OWLClass, Set<OWLClass>>();
     static HashMap<OWLClass, Set<OWLClass>> equiClassMap = new HashMap<OWLClass, Set<OWLClass>>();
+    static List<DataImplementationCls> currentInsertNodeObjList = new ArrayList<>();
 
     static List<OWLClass> randomClassList = new ArrayList<>();
     static Set<OWLClass> randomClassListDFS = new LinkedHashSet<>();
@@ -182,13 +183,19 @@ public class OwlSequentialParsing {
 
     // This method is used to implement the algorithm to construct final graph
     public void graphPopulation(CopyOnWriteArrayList<DataImplementationCls> clsList, List<OWLClass> randomClassList) {
-        List<DataImplementationCls> currentInsertNodeObjList = new ArrayList<>();
         for (OWLClass currentInsertNode : randomClassList) {
             graphPopulationRecursive(currentInsertNode, clsList,currentInsertNodeObjList);
         }
-        System.out.println("======="+clsList.size());
-        //while(clsList.size()!=LauncherClass.sizeOfList){}
-        for (DataImplementationCls currentInsertNode : currentInsertNodeObjList) {
+        System.out.println("====top==="+randomClassList.size());
+        /*for (DataImplementationCls currentInsertNode : currentInsertNodeObjList) {
+            bottomUpSearch(clsList, currentInsertNode,1);
+        }*/
+
+    }
+
+    public void graphPopulationBottom(CopyOnWriteArrayList<DataImplementationCls> clsList, List<DataImplementationCls> randomClassList) {
+        System.out.println("====bottom==="+randomClassList.size());
+        for (DataImplementationCls currentInsertNode : randomClassList) {
             bottomUpSearch(clsList, currentInsertNode,1);
         }
 
@@ -222,8 +229,9 @@ public class OwlSequentialParsing {
         }
     }
 
-    private boolean bottomUpSearch(CopyOnWriteArrayList<DataImplementationCls> clsList, DataImplementationCls currentInsertNodeObj, int numberOfRerun) {
+    private boolean bottomUpSearch(CopyOnWriteArrayList<DataImplementationCls> clsList, DataImplementationCls currentInsertNodeObj ,int numberOfRerun) {
         boolean flag = false;
+
         for (int i = clsList.size() - 1; i >= 0; i--) {
             int countNodeProcessesByIndividulaThread = clsList.get(i).getPredcessorDataSet().size();
             int countNodeProcessesByIndividulaThreadS = clsList.get(i).getSuccessorDataSet().size();
