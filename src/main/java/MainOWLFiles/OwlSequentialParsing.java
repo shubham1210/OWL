@@ -238,8 +238,8 @@ public class OwlSequentialParsing {
 
             countNumberOfTest++;
             if (superClassMap.get(clsList.get(i).getDataElement()) != null
-                    && superClassMap.get(clsList.get(i).getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                if (recursion && (clsList.get(i).getPredcessorDataSet().size() > countNodeProcessesByIndividulaThread)
+                    && superClassMap.get(clsList.get(i).getDataElement()).contains(currentInsertNodeObj.getDataElement())) /*{
+                if (false && (clsList.get(i).getPredcessorDataSet().size() > countNodeProcessesByIndividulaThread)
                         && numberOfRerun < LauncherClass.numberOfRerun) {//|| clsList.get(i).getSuccessorDataSet().size() > countNodeProcessesByIndividulaThreadS
                     System.out.println("Rerunning bottom search node..........."+clsList.get(i).getPredcessorDataSet().size() +"====="+countNodeProcessesByIndividulaThread);
                     bottomUpSearch(clsList, currentInsertNodeObj, numberOfRerun++);
@@ -260,7 +260,19 @@ public class OwlSequentialParsing {
                     System.out.println("adding non added element from BOTTOM UP");
                     nonAddedElelemntInRecursion.add(currentInsertNodeObj.getDataElement());
                 }
-            }
+            }*/
+
+                synchronized (clsList.get(i).getPredcessorDataSet()) {
+                    // if (recursion == false) System.out.println("adding...........");
+                    clsList.get(i).setEquivalentDataSet(equiClassMap.get(clsList.get(i).getDataElement()));
+                    currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
+                    currentInsertNodeObj.getSuccessorDataSet().add(clsList.get(i).getDataElement());
+                    clsList.get(i).getPredcessorDataSet().remove(clsList.get(0).getDataElement());
+                    clsList.get(i).getPredcessorDataSet().add(currentInsertNodeObj.getDataElement());
+                    clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
+                    countNodeProcessesByIndividulaThread++;
+                    flag = true;
+                }
         }
         return flag;
     }
