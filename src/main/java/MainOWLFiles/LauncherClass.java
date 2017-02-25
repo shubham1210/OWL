@@ -124,7 +124,16 @@ public class LauncherClass {
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
 
-        if (OwlSequentialParsing.removeDuplicateCheck == false) {
+        if(OwlSequentialParsing.nonAddedElelemntInRecursion.size()>0)
+        {
+            List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
+            OwlSequentialParsing.recursion =false;
+            OwlSequentialParsing.currentInsertNodeObjList.clear();
+            System.out.println("Rerun  == ");
+            parser.graphPopulation(finalGraphList, temp);
+        }
+
+        if (false && OwlSequentialParsing.removeDuplicateCheck == false) {
             //removing duplicate dataElement starts
 
             finalGraphList = removeDuplicateElement(finalGraphList);
@@ -164,7 +173,7 @@ public class LauncherClass {
 
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
-        if (OwlSequentialParsing.removeDuplicateCheck == false) {
+        if (false && OwlSequentialParsing.removeDuplicateCheck == false) {
             //removing duplicate dataElement starts
             finalGraphList = removeDuplicateElement(finalGraphList);
             //removing duplicate dataElement ends
@@ -388,7 +397,7 @@ public class LauncherClass {
                         // TODO: print some message
                         //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                         if(logging)
-                        System.out.println( "Missing Successor nodes in Reasoner: ======= "+currentObj +"is not present in child list of.." +element );
+                        System.out.println("This node is coming extra as a child== "+currentObj +"in = .." +element );
                     }
                 }
                 //System.out.println(succCount++ +"Successors successful 1");
@@ -399,7 +408,7 @@ public class LauncherClass {
                         // TODO: print some message
                         //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                         if(logging)
-                        System.out.println("Missing Successor nodes in fina graph"+succesorElement +"is not present in child list of final graph.." + element);
+                        System.out.println("This node = "+succesorElement +"is not present as child list of this element.." + element);
                     }
 
                 }
@@ -418,7 +427,7 @@ public class LauncherClass {
                             // TODO: print some message
                             //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                             if(logging)
-                            System.out.println("Missing predecessor nodes in reasoner"+currentObj +"is not present in child list of reasoner.." + element);
+                            System.out.println("This node is coming extra as a parent== "+currentObj +" to == .." + element);
                         }
                         //System.out.println("successful 1"+currentObj);
                     }
@@ -430,7 +439,7 @@ public class LauncherClass {
                             // TODO: print some message
                             //OwlSequentialParsing.nonAddedElelemntInRecursion.add(element);
                             if(logging)
-                            System.out.println("Missing predecessor nodes in final graph"+predecessorElement +"is not present in child list of final graph.." + element);
+                            System.out.println("This node = "+predecessorElement +"is not present as parent in list of .." + element);
                         }
 
                     }
