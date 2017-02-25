@@ -37,7 +37,7 @@ public class OwlSequentialParsing {
     static int rootElementIndex = 0;
     //public static Boolean arrayMat[][];
     public static boolean removeDuplicateCheck = true;
-    public static ConcurrentHashMap<Long,CopyOnWriteArraySet<DataImplementationCls>> mapInsertedConcept = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<Long,HashSet<DataImplementationCls>> mapInsertedConcept = new ConcurrentHashMap<>();
 
     public OwlSequentialParsing(Reasoner OWLHermit) {
         this.OWLHerm = OWLHermit;
@@ -186,7 +186,7 @@ public class OwlSequentialParsing {
 
     // This method is used to implement the algorithm to construct final graph
     public void graphPopulation(CopyOnWriteArrayList<DataImplementationCls> clsList, List<OWLClass> randomClassList) {
-        mapInsertedConcept.put(Thread.currentThread().getId(),new CopyOnWriteArraySet<>());
+        mapInsertedConcept.put(Thread.currentThread().getId(),new HashSet<>());
         for (OWLClass currentInsertNode : randomClassList) {
             graphPopulationRecursive(currentInsertNode, clsList,currentInsertNodeObjList);
         }
@@ -198,6 +198,7 @@ public class OwlSequentialParsing {
         /*if(OwlSequentialParsing.recursion==true)
         {
             clsList.add(currentInsertNodeObj);
+
             if (currentInsertNodeObj.getDataElement() == topNode)
                 rootElementIndex = clsList.indexOf(currentInsertNodeObj);
         }*/
@@ -216,13 +217,15 @@ public class OwlSequentialParsing {
         //System.out.println(mapInsertedConcept.get(Thread.currentThread().getId()).size());
         //mapInsertedConcept.put(Thread.currentThread().getId(),new CopyOnWriteArraySet<>());
         DataImplementationCls currentInsertNodeObj;
-        boolean nodePSFlag = false;
+        boolean nodePSFlag ;
         // System.out.println(Thread.currentThread().getName());
         // current node is the child of any node // top down approach
         currentInsertNodeObj = new DataImplementationCls(currentInsertNode);
         nodePSFlag = topDownSearch(clsList, currentInsertNodeObj, 1);
         // if current dataElement is not inferred by any processed
         // dataElement
+        nodePSFlag = bottomUpSearch(clsList, currentInsertNodeObj,1);
+
         if (nodePSFlag == false) {
             // System.out.println("currentInsertNode............"+currentInsertNode);
             // adding Successor of the root dataElement root
@@ -232,7 +235,6 @@ public class OwlSequentialParsing {
         }
 
         //running bottom for each node after top
-        bottomUpSearch(clsList, currentInsertNodeObj,1);
 
         if(OwlSequentialParsing.recursion==true && mapInsertedConcept.get(Thread.currentThread().getId()).size()==0)
         {
@@ -246,30 +248,32 @@ public class OwlSequentialParsing {
         }
         else if(mapInsertedConcept.get(Thread.currentThread().getId()).size()>=0){
             boolean flag= false;
+            HashSet<DataImplementationCls> set;
+            synchronized (mapInsertedConcept.get(Thread.currentThread().getId())){
+                set = new HashSet<>(mapInsertedConcept.get(Thread.currentThread().getId()));
+            }
+                for (DataImplementationCls added : set) {
+                    if (superClassMap.get(added.getDataElement()) != null
+                            && superClassMap.get(added.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
+                        flag = true;
+                        System.out.println("rerun from newly added concept1");
+                        synchronized (mapInsertedConcept.get(Thread.currentThread().getId()))
+                        {
+                            mapInsertedConcept.get(Thread.currentThread().getId()).clear();
 
-            for (DataImplementationCls added : mapInsertedConcept.get(Thread.currentThread().getId())) {
-                if (superClassMap.get(added.getDataElement()) != null
-                        && superClassMap.get(added.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                    flag =true;
-                    System.out.println("rerun from newly added concept1");
-                    synchronized (mapInsertedConcept.get(Thread.currentThread().getId()))
-                    {
-                        mapInsertedConcept.get(Thread.currentThread().getId()).clear();
+                        }
+                        graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
+                    } else if (subClassHashMap.get(added.getDataElement()) != null
+                            && subClassHashMap.get(added.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
+                        flag = true;
+                        System.out.println("rerun from newly added concept2");
+                        synchronized (mapInsertedConcept.get(Thread.currentThread().getId()))
+                        {
+                            mapInsertedConcept.get(Thread.currentThread().getId()).clear();
 
+                        }
+                        graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
                     }
-                    graphPopulationRecursive(currentInsertNode, clsList,currentInsertNodeObjList);
-                }
-                else if (subClassHashMap.get(added.getDataElement()) != null
-                        && subClassHashMap.get(added.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                    flag =true;
-                    System.out.println("rerun from newly added concept2");
-                    synchronized (mapInsertedConcept.get(Thread.currentThread().getId()))
-                    {
-                        mapInsertedConcept.get(Thread.currentThread().getId()).clear();
-
-                    }
-                    graphPopulationRecursive(currentInsertNode, clsList,currentInsertNodeObjList);
-                }
             }
             if(flag == false)
             {
@@ -284,7 +288,7 @@ public class OwlSequentialParsing {
 
     }
 
-    private CopyOnWriteArraySet<DataImplementationCls> addValue(Long threadID,CopyOnWriteArraySet<DataImplementationCls> v,DataImplementationCls value)
+    private HashSet<DataImplementationCls> addValue(Long threadID,HashSet<DataImplementationCls> v,DataImplementationCls value)
     {
         if(Thread.currentThread().getId()!=threadID)
         {
