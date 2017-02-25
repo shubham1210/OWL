@@ -19,7 +19,5 @@ public class ThreadExecution implements Runnable {
         }
         public void run() {
             parser.graphPopulation(finalGraphList,randomClassList);
-            //parser.graphPopulation(finalGraphList,randomClassList);
-
         }
 }

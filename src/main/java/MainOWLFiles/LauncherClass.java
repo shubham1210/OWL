@@ -120,7 +120,7 @@ public class LauncherClass {
         //adding top node to tree ends
         startTime = System.currentTimeMillis();
         parser.graphPopulation(finalGraphList, list);
-        parser.graphPopulationBottom(finalGraphList, OwlSequentialParsing.currentInsertNodeObjList);
+        //parser.graphPopulationBottom(finalGraphList, OwlSequentialParsing.currentInsertNodeObjList);
         endTime = System.currentTimeMillis();
         duration = (endTime - startTime);
 
@@ -274,49 +274,6 @@ public class LauncherClass {
         else
         {
             proExec = new ThreadExecution(finalGraphList, parser, listTobeWorkedOn);
-            Runnable worker = proExec;
-            executor.execute(worker);//calling execute method of ExecutorService
-        }
-        executor.shutdown();
-        while (!executor.isTerminated()) {   }
-
-        System.out.println("top Down Complete === "+OwlSequentialParsing.currentInsertNodeObjList.size());
-        //=========================================
-
-        executor = Executors.newFixedThreadPool(10);//creating a pool of 5 threads
-        intialRange = 0;
-        numberOfThreads = size / threadsNumber;
-        if (threadsNumber < size) {
-
-            while (numberOfThreads < size) {
-                listBottom = OwlSequentialParsing.currentInsertNodeObjList.subList(intialRange, numberOfThreads);
-                proExec = new ThreadExecutionBottom(finalGraphList, parser, listBottom);
-                Runnable worker = proExec;
-                executor.execute(worker);//calling execute method of ExecutorService
-                if (numberOfThreads + (size / threadsNumber) < size) {
-                    intialRange = numberOfThreads;
-                    numberOfThreads += size / threadsNumber;
-                } else {
-                    break;
-                }
-            }
-            if (numberOfThreads < size) {
-                listBottom = OwlSequentialParsing.currentInsertNodeObjList.subList(numberOfThreads, size);
-                proExec = new ThreadExecutionBottom(finalGraphList, parser, listBottom);
-                Runnable worker = proExec;
-                executor.execute(worker);//calling execute method of ExecutorService
-            }
-            if(threadsNumber == 1)
-            {
-                proExec = new ThreadExecutionBottom(finalGraphList, parser, OwlSequentialParsing.currentInsertNodeObjList);
-                Runnable worker = proExec;
-                executor.execute(worker);//calling execute method of ExecutorService
-            }
-
-        }
-        else
-        {
-            proExec = new ThreadExecutionBottom(finalGraphList, parser, OwlSequentialParsing.currentInsertNodeObjList);
             Runnable worker = proExec;
             executor.execute(worker);//calling execute method of ExecutorService
         }
