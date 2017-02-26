@@ -163,6 +163,7 @@ public class LauncherClass {
         //resultComparator(finalGraphList,false);
         System.out.println("\n\n========================================NON added ==================== "+OwlSequentialParsing.nonAddedElelemntInRecursion.size());
 
+        System.out.println(OwlSequentialParsing.nonAddedElelemntInRecursion);
         if(OwlSequentialParsing.nonAddedElelemntInRecursion.size()>0)
         {
             List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
