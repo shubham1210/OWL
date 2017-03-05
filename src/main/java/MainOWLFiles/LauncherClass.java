@@ -180,8 +180,11 @@ public class LauncherClass {
             //removing duplicate dataElement ends
         }
 
+
+
         //thread approach starts
         System.out.println("\n\n========================================MULTIPLE Threading Framework STARTS==================== "+finalGraphList.size());
+        //finalGraphList.forEach(element -> System.out.println(element));
         System.out.println("========================================Time consumption ==================================" + duration);
         //System.out.println(finalGraphList);
         resultComparator(finalGraphList,true);
