@@ -61,7 +61,21 @@ public class DataImplementationCls {
 
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
+        DataImplementationCls that = (DataImplementationCls) o;
+
+        return getDataElement().equals(that.getDataElement());
+
+    }
+
+    @Override
+    public int hashCode() {
+        return getDataElement().hashCode();
+    }
     /*public boolean equals(DataImplementationCls other) {
         // compare the features of the tow instances and return true or false
         if (!this.getPredcessorDataSet().equals(other.getPredcessorDataSet())) {
