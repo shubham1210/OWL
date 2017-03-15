@@ -119,6 +119,7 @@ public class LauncherClass {
         finalGraphList = resetListAndAddRoot(finalGraphList);
         //adding top node to tree ends
         startTime = System.currentTimeMillis();
+        numberOfRerun =2;
         parser.graphPopulation(finalGraphList, list);
         //parser.graphPopulationBottom(finalGraphList, OwlSequentialParsing.currentInsertNodeObjList);
         endTime = System.currentTimeMillis();
