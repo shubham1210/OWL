@@ -82,6 +82,15 @@ public class OwlSequentialParsing {
             for (Iterator<OWLClass> it = this.OWLHerm.getTopClassNode().getEntities().iterator();
                  it.hasNext(); ) {
                 topNode = it.next();
+                // This is giving the subclass of given concept fetch by Hermit reasoner
+                Set<OWLClass> subClasses = this.OWLHerm.getSubClasses((OWLClass) topNode, true).getFlattened();
+                subClassHashMap.put(topNode, subClasses);
+
+                // This is list of superclass of given concept given by Hermit reasoner
+                Set<OWLClass> superClasses = this.OWLHerm.getSuperClasses((OWLClass) topNode, true).getFlattened();
+
+                //System.out.println(count++ + "  The super classes for ---" + oap + "  is====" + superClasses);
+                superClassMap.put(topNode, superClasses);
                 break;
             }
         }
