@@ -11,9 +11,7 @@ import org.semanticweb.owlapi.reasoner.Node;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 public class OwlSequentialParsing {
 
@@ -37,7 +35,7 @@ public class OwlSequentialParsing {
     static int rootElementIndex = 0;
     //public static Boolean arrayMat[][];
     public static boolean removeDuplicateCheck = true;
-    public static ConcurrentHashMap<Long,HashSet<DataImplementationCls>> mapInsertedConcept = new ConcurrentHashMap<>();
+    public static HashMap<Long,HashSet<DataImplementationCls>> mapInsertedConcept = new HashMap<>();
 
     public OwlSequentialParsing(Reasoner OWLHermit) {
         this.OWLHerm = OWLHermit;
@@ -226,22 +224,32 @@ public class OwlSequentialParsing {
 
         if(OwlSequentialParsing.recursion==true && mapInsertedConcept.get(Thread.currentThread().getId()).size()==0)
         {
-            if(currentInsertNode.isOWLThing()==false){
-                if(clsList.contains(currentInsertNodeObj)==false)
-                {
-                    clsList.add(currentInsertNodeObj);
-                    currentInsertNodeObjList.add(currentInsertNodeObj);
-                }
-                if (currentInsertNodeObj.getDataElement() == topNode)
-                    rootElementIndex = clsList.indexOf(currentInsertNodeObj);
-                mapInsertedConcept.replaceAll((k, v) -> addValue(k,v,currentInsertNodeObj));
-
-            }
-            else if(currentInsertNode.isOWLThing()==true)
+            synchronized (mapInsertedConcept)
             {
-                mapInsertedConcept.replaceAll((k, v) -> addValue(k,v,clsList.get(0)));
+                if(mapInsertedConcept.get(Thread.currentThread().getId()).size()==0)
+                {
+                    if(currentInsertNode.isOWLThing()==false){
+                        if(clsList.contains(currentInsertNodeObj)==false)
+                        {
+                            clsList.add(currentInsertNodeObj);
+                            currentInsertNodeObjList.add(currentInsertNodeObj);
+                        }
+                        if (currentInsertNodeObj.getDataElement() == topNode)
+                            rootElementIndex = clsList.indexOf(currentInsertNodeObj);
+                        mapInsertedConcept.replaceAll((k, v) -> addValue(k,v,currentInsertNodeObj));
 
+                    }
+                    else if(currentInsertNode.isOWLThing()==true)
+                    {
+                        mapInsertedConcept.replaceAll((k, v) -> addValue(k,v,clsList.get(0)));
+
+                    }
+                }else
+                {
+                    graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
+                }
             }
+
         }
         else if(OwlSequentialParsing.recursion==true && mapInsertedConcept.get(Thread.currentThread().getId()).size()>=0){
             boolean flag= false;
@@ -273,6 +281,11 @@ public class OwlSequentialParsing {
                     }
             }
             if (flag == false) {
+                synchronized (mapInsertedConcept) {
+                    if (mapInsertedConcept.get(Thread.currentThread().getId()).size() != set.size()) {
+                        graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
+                    }
+                }
 
                 if(currentInsertNode.isOWLThing()==false){
                     if(clsList.contains(currentInsertNodeObj)==false)
