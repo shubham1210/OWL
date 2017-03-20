@@ -202,7 +202,7 @@ public class LauncherClass {
         startTime = System.currentTimeMillis();
         startForkOnBasisOFParsingNumber(sizePool,noThread, finalGraphList, parser, list);
         //resultComparator(finalGraphList,false);
-        System.out.println("\n\n========================================NON added ==================== "+OwlSequentialParsing.nonAddedElelemntInRecursion.size());
+        System.out.println("\n\n========================================NON added ==================== "+finalGraphList.size());
         if(OwlSequentialParsing.nonAddedElelemntInRecursion.size()>0)
         {
             List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
@@ -308,10 +308,8 @@ public class LauncherClass {
             while (nodesPerThread < numOfNodes) {
                 list = listTobeWorkedOn.subList(intialRange, nodesPerThread);
                 //System.out.println("Sublist Size in fork............"+list.size());
-
                 myRecursiveAction = new MyRecursiveAction(finalGraphList, parser, list);
                 forkJoinPool.execute(myRecursiveAction);
-                myRecursiveActionList.add(myRecursiveAction);
                 if (nodesPerThread + (numOfNodes / numOfThreads) < numOfNodes) {
                     intialRange = nodesPerThread;
                     nodesPerThread += numOfNodes / numOfThreads;
@@ -324,60 +322,19 @@ public class LauncherClass {
                 //System.out.println("Sublist Size in fork"+list.size());
                 myRecursiveAction = new MyRecursiveAction(finalGraphList, parser, list);
                 forkJoinPool.execute(myRecursiveAction);
-                myRecursiveActionList.add(myRecursiveAction);
             }
             else if(numOfThreads == 1)
             {
                 myRecursiveAction = new MyRecursiveAction(finalGraphList, parser, listTobeWorkedOn);
                 forkJoinPool.execute(myRecursiveAction);
-                myRecursiveActionList.add(myRecursiveAction);
             }
         }else
         {
             myRecursiveAction = new MyRecursiveAction(finalGraphList, parser, listTobeWorkedOn);
             forkJoinPool.execute(myRecursiveAction);
-            myRecursiveActionList.add(myRecursiveAction);
         }
         System.out.println("fork pool size==="+forkJoinPool.getPoolSize());
         System.out.println("fork Parallelism === "+forkJoinPool.getParallelism());
-        forkJoinPool.shutdown();
-        while (!forkJoinPool.isTerminated()) {   }
-
-        numOfNodes = OwlSequentialParsing.currentInsertNodeObjList.size();
-        nodesPerThread = numOfNodes / numOfThreads;
-        intialRange = 0;
-        MyRecursiveActionBottom myRecursiveActionBottom;
-
-        forkJoinPool = new ForkJoinPool(poolSize);
-        if (numOfThreads < numOfNodes) {
-            while (nodesPerThread < numOfNodes) {
-                listBottom = OwlSequentialParsing.currentInsertNodeObjList.subList(intialRange, nodesPerThread);
-                myRecursiveActionBottom = new MyRecursiveActionBottom(finalGraphList, parser, listBottom);
-                forkJoinPool.execute(myRecursiveActionBottom);
-                if (nodesPerThread + (numOfNodes / numOfThreads) < numOfNodes) {
-                    intialRange = nodesPerThread;
-                    nodesPerThread += numOfNodes / numOfThreads;
-                } else {
-                    break;
-                }
-            }
-            if (nodesPerThread < numOfNodes) {
-                listBottom = OwlSequentialParsing.currentInsertNodeObjList.subList(nodesPerThread, numOfNodes);
-                myRecursiveActionBottom = new MyRecursiveActionBottom(finalGraphList, parser, listBottom);
-                forkJoinPool.execute(myRecursiveActionBottom);
-            }
-            else if(numOfThreads == 1)
-            {
-                myRecursiveActionBottom = new MyRecursiveActionBottom(finalGraphList, parser, OwlSequentialParsing.currentInsertNodeObjList);
-                forkJoinPool.execute(myRecursiveActionBottom);
-            }
-        }else
-        {
-            myRecursiveActionBottom = new MyRecursiveActionBottom(finalGraphList, parser, OwlSequentialParsing.currentInsertNodeObjList);
-            forkJoinPool.execute(myRecursiveActionBottom);
-        }
-        System.out.println("fork pool size Bottom==="+forkJoinPool.getPoolSize());
-        System.out.println("fork Parallelism Bottom=== "+forkJoinPool.getParallelism());
         forkJoinPool.shutdown();
         while (!forkJoinPool.isTerminated()) {   }
     }

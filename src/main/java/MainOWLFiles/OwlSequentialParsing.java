@@ -35,7 +35,7 @@ public class OwlSequentialParsing {
     static int rootElementIndex = 0;
     //public static Boolean arrayMat[][];
     public static boolean removeDuplicateCheck = true;
-    public static HashMap<Long,HashSet<DataImplementationCls>> mapInsertedConcept = new HashMap<>();
+    public static HashMap<Long, HashSet<DataImplementationCls>> mapInsertedConcept = new HashMap<>();
 
     public OwlSequentialParsing(Reasoner OWLHermit) {
         this.OWLHerm = OWLHermit;
@@ -94,8 +94,7 @@ public class OwlSequentialParsing {
                 break;
             }
         }
-        if(topNode == null)
-        {
+        if (topNode == null) {
             topNode = new OwlThing(IRI.create(new File("c:")));
             randomClassList.add(topNode);
             subClassHashMap.put(topNode, new HashSet<>());
@@ -126,15 +125,13 @@ public class OwlSequentialParsing {
     // recursive method for DFS approach
     private void recursiveDFS(OWLClass cls) {
         Set<OWLClass> subClasses = OwlUnreasoningClass.subClassMap.get(cls);
-        if(OwlUnreasoningClass.OwlThingFound == false)
-        {
-            if(subClasses==null)
-            {
-                subClasses=new HashSet<OWLClass>();
+        if (OwlUnreasoningClass.OwlThingFound == false) {
+            if (subClasses == null) {
+                subClasses = new HashSet<OWLClass>();
             }
             subClasses.addAll(OwlUnreasoningClass.listOfClassesWithNoParent);
-            System.out.println("adding classes that has no parent == "+subClasses);
-            OwlUnreasoningClass.OwlThingFound=true;
+            System.out.println("adding classes that has no parent == " + subClasses);
+            OwlUnreasoningClass.OwlThingFound = true;
         }
         randomClassListDFS.add(cls);
         if (OwlUnreasoningClass.EquivalentClassMap.get(cls) != null) {
@@ -165,15 +162,13 @@ public class OwlSequentialParsing {
         while (!queue.isEmpty()) {
             OWLClass node = queue.remove();
             Set<OWLClass> subClasses = OwlUnreasoningClass.subClassMap.get(node); //this.OWLHerm.getSubClasses(node, true).getFlattened();//
-            if(OwlUnreasoningClass.OwlThingFound == false)
-            {
-                if(subClasses==null)
-                {
-                    subClasses=new HashSet<OWLClass>();
+            if (OwlUnreasoningClass.OwlThingFound == false) {
+                if (subClasses == null) {
+                    subClasses = new HashSet<OWLClass>();
                 }
                 subClasses.addAll(OwlUnreasoningClass.listOfClassesWithNoParent);
-                OwlUnreasoningClass.OwlThingFound=true;
-                System.out.println("adding classes that has no parent == "+subClasses);
+                OwlUnreasoningClass.OwlThingFound = true;
+                System.out.println("adding classes that has no parent == " + subClasses);
             }
             if (OwlUnreasoningClass.EquivalentClassMap.get(node) != null) {
                 randomClassListBFS.addAll(OwlUnreasoningClass.EquivalentClassMap.get(node));
@@ -193,151 +188,135 @@ public class OwlSequentialParsing {
 
     // This method is used to implement the algorithm to construct final graph
     public void graphPopulation(CopyOnWriteArrayList<DataImplementationCls> clsList, List<OWLClass> randomClassList) {
-        mapInsertedConcept.put(Thread.currentThread().getId(),new HashSet<>());
+        synchronized (mapInsertedConcept) {
+            mapInsertedConcept.put(Thread.currentThread().getId(), new HashSet<>());
+        }
         for (OWLClass currentInsertNode : randomClassList) {
-            graphPopulationRecursive(currentInsertNode, clsList,currentInsertNodeObjList);
+            graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
         }
     }
 
     public void graphPopulationBottom(CopyOnWriteArrayList<DataImplementationCls> clsList, List<DataImplementationCls> randomClassList) {
         //System.out.println("====bottom==="+randomClassList.size());
         for (DataImplementationCls currentInsertNode : randomClassList) {
-            bottomUpSearch(clsList, currentInsertNode,1);
+            bottomUpSearch(clsList, currentInsertNode, 1);
         }
 
     }
 
-    private void graphPopulationRecursive(OWLClass currentInsertNode, CopyOnWriteArrayList<DataImplementationCls> clsList,List<DataImplementationCls> currentInsertNodeObjList) {
+    private void graphPopulationRecursive(OWLClass currentInsertNode, CopyOnWriteArrayList<DataImplementationCls> clsList, List<DataImplementationCls> currentInsertNodeObjList) {
         //System.out.println(mapInsertedConcept.get(Thread.currentThread().getId()).size());
         //mapInsertedConcept.put(Thread.currentThread().getId(),new CopyOnWriteArraySet<>());
         DataImplementationCls currentInsertNodeObj;
-        boolean nodePSFlagTop ;
+        boolean nodePSFlagTop;
         // System.out.println(Thread.currentThread().getName());
         // current node is the child of any node // top down approach
         currentInsertNodeObj = new DataImplementationCls(currentInsertNode);
         nodePSFlagTop = topDownSearch(clsList, currentInsertNodeObj, 1);
         // if current dataElement is not inferred by any processed
         // dataElement
-        bottomUpSearch(clsList, currentInsertNodeObj,1);
-
-        if (nodePSFlagTop == false && currentInsertNode.isOWLThing()==false) {
-            // System.out.println("currentInsertNode............"+currentInsertNode);
-            // adding Successor of the root dataElement root
-            //clsList.get(0).getSuccessorDataSet().add(currentInsertNode);
-            // adding father as root of current dataElement
-            //currentInsertNodeObj.getPredcessorDataSet().add(clsList.get(0).getDataElement());
-            //nonAddedElelemntInRecursion.add(currentInsertNodeObj.getDataElement());
-        }
+        bottomUpSearch(clsList, currentInsertNodeObj, 1);
 
         //running bottom for each node after top
 
-        if(OwlSequentialParsing.recursion==true && mapInsertedConcept.get(Thread.currentThread().getId()).size()==0)
-        {
-            synchronized (mapInsertedConcept)
-            {
-                if(mapInsertedConcept.get(Thread.currentThread().getId()).size()==0)
-                {
-                    if(currentInsertNode.isOWLThing()==false){
-                        if(clsList.contains(currentInsertNodeObj)==false)
-                        {
+        if (OwlSequentialParsing.recursion == true && mapInsertedConcept.get(Thread.currentThread().getId()).size() == 0) {
+            synchronized (mapInsertedConcept) {
+                if (mapInsertedConcept.get(Thread.currentThread().getId()).size() == 0) {
+                    if (currentInsertNode.isOWLThing() == false) {
+                        if (clsList.contains(currentInsertNodeObj) == false) {
                             clsList.add(currentInsertNodeObj);
                             currentInsertNodeObjList.add(currentInsertNodeObj);
                         }
                         if (currentInsertNodeObj.getDataElement() == topNode)
                             rootElementIndex = clsList.indexOf(currentInsertNodeObj);
-                        mapInsertedConcept.replaceAll((k, v) -> addValue(k,v,currentInsertNodeObj));
+                        mapInsertedConcept.replaceAll((k, v) -> addValue(k, v, currentInsertNodeObj));
 
+                    } else if (currentInsertNode.isOWLThing() == true) {
+                        mapInsertedConcept.replaceAll((k, v) -> addValue(k, v, clsList.get(0)));
                     }
-                    else if(currentInsertNode.isOWLThing()==true)
-                    {
-                        mapInsertedConcept.replaceAll((k, v) -> addValue(k,v,clsList.get(0)));
-
-                    }
-                }else
-                {
+                } else {
                     graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
                 }
             }
 
-        }
-        else if(OwlSequentialParsing.recursion==true && mapInsertedConcept.get(Thread.currentThread().getId()).size()>=0){
-            boolean flag= false;
+        } else if (OwlSequentialParsing.recursion == true && mapInsertedConcept.get(Thread.currentThread().getId()).size() >= 0) {
+            boolean flag = false;
             HashSet<DataImplementationCls> set;
-            synchronized (mapInsertedConcept.get(Thread.currentThread().getId())){
+            synchronized (mapInsertedConcept.get(Thread.currentThread().getId())) {
                 set = new HashSet<>(mapInsertedConcept.get(Thread.currentThread().getId()));
             }
-                for (DataImplementationCls added : set) {
-                    if (superClassMap.get(added.getDataElement()) != null
-                            && superClassMap.get(added.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                        flag = true;
-                        System.out.println("rerun from newly added concept1"+currentInsertNode);
-                            synchronized (mapInsertedConcept.get(Thread.currentThread().getId()))
-                            {
-                                mapInsertedConcept.get(Thread.currentThread().getId()).removeAll(set);
-                            }
-                            //System.out.print("here 1 === "+set.size());System.out.println(" === size == "+mapInsertedConcept.get(Thread.currentThread().getId()).size());
-                        graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
-                    } else if (subClassHashMap.get(added.getDataElement()) != null
-                            && subClassHashMap.get(added.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
-                        flag = true;
-                        System.out.println("rerun from newly added concept2"+currentInsertNode);
-                            synchronized (mapInsertedConcept.get(Thread.currentThread().getId()))
-                            {
-                                mapInsertedConcept.get(Thread.currentThread().getId()).removeAll(set);
-                            }
-                            //System.out.print("here 2===");System.out.println("  size == "+mapInsertedConcept.get(Thread.currentThread().getId()).size());
-                        graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
+            for (DataImplementationCls added : set) {
+                if (superClassMap.get(added.getDataElement()) != null
+                        && superClassMap.get(added.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
+                    flag = true;
+                    System.out.println("rerun from newly added concept1" + currentInsertNode);
+                    synchronized (mapInsertedConcept.get(Thread.currentThread().getId())) {
+                        mapInsertedConcept.get(Thread.currentThread().getId()).clear();
                     }
+                    //graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
+                    break;
+                    //System.out.print("here 1 === "+set.size());System.out.println(" === size == "+mapInsertedConcept.get(Thread.currentThread().getId()).size());
+                } else if (subClassHashMap.get(added.getDataElement()) != null
+                        && subClassHashMap.get(added.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
+                    flag = true;
+                    System.out.println("rerun from newly added concept2" + currentInsertNode);
+                    synchronized (mapInsertedConcept.get(Thread.currentThread().getId())) {
+                        mapInsertedConcept.get(Thread.currentThread().getId()).clear();
+                    }
+                    //System.out.print("here 2===");System.out.println("  size == "+mapInsertedConcept.get(Thread.currentThread().getId()).size());
+                    //graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
+                    break;
+                }
             }
-            if (flag == false) {
+            if (flag == true) {
+                graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
+            } else if (flag == false) {
                 synchronized (mapInsertedConcept) {
                     if (mapInsertedConcept.get(Thread.currentThread().getId()).size() != set.size()) {
                         graphPopulationRecursive(currentInsertNode, clsList, currentInsertNodeObjList);
                     }
-                }
+                    if (currentInsertNode.isOWLThing() == false) {
+                        if (clsList.contains(currentInsertNodeObj) == false) {
+                            clsList.add(currentInsertNodeObj);
+                            currentInsertNodeObjList.add(currentInsertNodeObj);
+                        }
 
-                if(currentInsertNode.isOWLThing()==false){
-                    if(clsList.contains(currentInsertNodeObj)==false)
-                    {
-                        clsList.add(currentInsertNodeObj);
-                        currentInsertNodeObjList.add(currentInsertNodeObj);
+                        if (currentInsertNodeObj.getDataElement() == topNode)
+                            rootElementIndex = clsList.indexOf(currentInsertNodeObj);
+                        synchronized (mapInsertedConcept) {
+                            mapInsertedConcept.replaceAll((k, v) -> addValue(k, v, currentInsertNodeObj));
+                        }
+                    } else if (currentInsertNode.isOWLThing() == true) {
+                        synchronized (mapInsertedConcept) {
+                            mapInsertedConcept.replaceAll((k, v) -> addValue(k, v, clsList.get(0)));
+                        }
+
                     }
-
-                    if (currentInsertNodeObj.getDataElement() == topNode)
-                        rootElementIndex = clsList.indexOf(currentInsertNodeObj);
-                    mapInsertedConcept.replaceAll((k, v) -> addValue(k,v,currentInsertNodeObj));
-                }
-                else if(currentInsertNode.isOWLThing()==true)
-                {
-                    mapInsertedConcept.replaceAll((k, v) -> addValue(k,v,clsList.get(0)));
-
                 }
             }
         }
 
     }
 
-    private HashSet<DataImplementationCls> addValue(Long threadID,HashSet<DataImplementationCls> v,DataImplementationCls value)
-    {
-        if(Thread.currentThread().getId()!=threadID)
-        {
-            synchronized (v)
-            {
+    private HashSet<DataImplementationCls> addValue(Long threadID, HashSet<DataImplementationCls> v, DataImplementationCls value) {
+        if (Thread.currentThread().getId() != threadID) {
+            synchronized (v) {
                 v.add(value);
             }
 
         }
         return v;
     }
-    private boolean bottomUpSearch(CopyOnWriteArrayList<DataImplementationCls> clsList, DataImplementationCls currentInsertNodeObj ,int numberOfRerun) {
+
+    private boolean bottomUpSearch(CopyOnWriteArrayList<DataImplementationCls> clsList, DataImplementationCls currentInsertNodeObj, int numberOfRerun) {
         boolean flag = false;
 
-            // Generate an iterator. Start just after the last element.
-            ListIterator<DataImplementationCls> li = clsList.listIterator(clsList.size());
+        // Generate an iterator. Start just after the last element.
+        ListIterator<DataImplementationCls> li = clsList.listIterator(clsList.size());
 
-            // Iterate in reverse.
-            while(li.hasPrevious()) {
-                DataImplementationCls processedNode = li.previous();
+        // Iterate in reverse.
+        while (li.hasPrevious()) {
+            DataImplementationCls processedNode = li.previous();
             int countNodeProcessesByIndividulaThread = processedNode.getPredcessorDataSet().size();
             int countNodeProcessesByIndividulaThreadS = processedNode.getSuccessorDataSet().size();
             countNumberOfTest++;
@@ -345,23 +324,22 @@ public class OwlSequentialParsing {
                     && superClassMap.get(processedNode.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
                 if ((processedNode.getPredcessorDataSet().size() > countNodeProcessesByIndividulaThread)
                         && numberOfRerun < LauncherClass.numberOfRerun) {//|| processedNode.getSuccessorDataSet().size() > countNodeProcessesByIndividulaThreadS
-                    System.out.println("Rerunning bottom search node..........."+processedNode.getPredcessorDataSet().size() +"====="+countNodeProcessesByIndividulaThread);
+                    System.out.println("Rerunning bottom search node..........." + processedNode.getPredcessorDataSet().size() + "=====" + countNodeProcessesByIndividulaThread);
                     bottomUpSearch(clsList, currentInsertNodeObj, numberOfRerun++);
                 } else if (numberOfRerun < LauncherClass.numberOfRerun) {
                     synchronized (processedNode.getPredcessorDataSet()) {
-                       // if (recursion == false) System.out.println("adding...........");
+                        // if (recursion == false) System.out.println("adding...........");
                         processedNode.setEquivalentDataSet(equiClassMap.get(processedNode.getDataElement()));
                         currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
                         currentInsertNodeObj.getSuccessorDataSet().add(processedNode.getDataElement());
                         processedNode.getPredcessorDataSet().remove(clsList.get(0).getDataElement());
                         processedNode.getPredcessorDataSet().add(currentInsertNodeObj.getDataElement());
-                        if(subClassHashMap.get(clsList.get(0))!=null && subClassHashMap.get(clsList.get(0)).contains(currentInsertNodeObj.getDataElement())==false)
+                        if (subClassHashMap.get(clsList.get(0)) != null && subClassHashMap.get(clsList.get(0)).contains(currentInsertNodeObj.getDataElement()) == false)
                             clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
                         countNodeProcessesByIndividulaThread++;
                         flag = true;
                     }
-                }
-                else {
+                } else {
                     System.out.println("adding non added element from BOTTOM UP");
                     nonAddedElelemntInRecursion.add(currentInsertNodeObj.getDataElement());
                 }
@@ -384,20 +362,19 @@ public class OwlSequentialParsing {
             if (subClassHashMap.get(processedNode.getDataElement()) != null
                     && subClassHashMap.get(processedNode.getDataElement()).contains(currentInsertNodeObj.getDataElement())) {
                 if (recursion && (processedNode.getSuccessorDataSet().size() > countNodeProcessesByIndividulaThread
-                        )
+                )
                         && numberOfRerun < LauncherClass.numberOfRerun)//|| processedNode.getPredcessorDataSet().size() > countNodeProcessesByIndividulaThreadP
                 {
                     System.out.println("Rerunning top node search...........");
                     topDownSearch(clsList, currentInsertNodeObj, numberOfRerun++);
                 } else if (numberOfRerun < LauncherClass.numberOfRerun) {
                     //if (recursion == false) System.out.println("adding...........");
-                    synchronized (processedNode.getSuccessorDataSet())
-                    {
+                    synchronized (processedNode.getSuccessorDataSet()) {
                         processedNode.setEquivalentDataSet(equiClassMap.get(processedNode.getDataElement()));
                         currentInsertNodeObj.setEquivalentDataSet(equiClassMap.get(currentInsertNodeObj.getDataElement()));
                         currentInsertNodeObj.getPredcessorDataSet().add(processedNode.getDataElement());
                         processedNode.getSuccessorDataSet().add(currentInsertNodeObj.getDataElement());
-                        if(subClassHashMap.get(clsList.get(0))!=null && subClassHashMap.get(clsList.get(0)).contains(currentInsertNodeObj.getDataElement())==false)
+                        if (subClassHashMap.get(clsList.get(0)) != null && subClassHashMap.get(clsList.get(0)).contains(currentInsertNodeObj.getDataElement()) == false)
                             clsList.get(0).getSuccessorDataSet().remove(currentInsertNodeObj.getDataElement());
                         flag = true;
                     }
