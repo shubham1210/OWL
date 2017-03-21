@@ -167,6 +167,7 @@ public class LauncherClass {
         System.out.println(OwlSequentialParsing.nonAddedElelemntInRecursion);
         if(OwlSequentialParsing.nonAddedElelemntInRecursion.size()>0)
         {
+            OwlSequentialParsing.mapInsertedConcept = new HashMap<>();
             List<OWLClass> temp = new ArrayList<>(OwlSequentialParsing.nonAddedElelemntInRecursion);
             OwlSequentialParsing.recursion =false;
             OwlSequentialParsing.currentInsertNodeObjList.clear();
